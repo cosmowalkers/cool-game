@@ -302,7 +302,7 @@ function Menu({
 
       <div className="menu-art" aria-hidden="true">
         <span className="exit-sign">{t("exitLabel")}</span>
-        <img src={`${ASSET_ROOT}player.svg`} alt="" />
+        <img src={`${ASSET_ROOT}player.png`} alt="" />
         <span className="paper paper-one" />
         <span className="paper paper-two" />
         <span className="paper paper-three" />
@@ -453,10 +453,10 @@ export default function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <div className="mini-brand">
+        <a className="mini-brand" href="/" aria-label={`${t("brand")} ${t("title")}`}>
           <strong>{t("brand")}</strong>
           <span>{t("title")}</span>
-        </div>
+        </a>
         <div className="topbar-actions">
           {inRun ? (
             <IconButton

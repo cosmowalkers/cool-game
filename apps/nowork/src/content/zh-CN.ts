@@ -1,7 +1,7 @@
 export const copy = {
   brand: "NOWORK",
   title: "下班大逃亡",
-  tagline: "坐稳办公椅，冲破今天最后一道封锁。",
+  tagline: "背上书包，冲破今天最后一道封锁。",
   start: "开始逃亡",
   continue: "继续逃亡",
   retry: "重新挑战",
@@ -38,7 +38,7 @@ export const copy = {
   orientation: "请竖起手机",
   orientationHint: "NOWORK 使用竖屏战场，旋转设备后继续逃亡。",
   tutorialMoveDesktop: "移动鼠标或使用 WASD / 方向键",
-  tutorialMoveTouch: "按住屏幕，拖动办公椅",
+  tutorialMoveTouch: "按住屏幕，拖动角色",
   tutorialSkillDesktop: "按空格释放「强制下班」",
   tutorialSkillTouch: "点击闪电按钮释放「强制下班」",
   firstLine: "今天，也要准时离开。",

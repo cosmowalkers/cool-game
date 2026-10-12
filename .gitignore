@@ -1,7 +1,15 @@
-node_modules
-dist
+node_modules/
+.pnpm-store/
+dist/
 .DS_Store
 *.local
 .env
 .env.*
 !.env.example
+
+# Existing independent projects in this workspace.
+/cool-nav/
+/cool-nowork/
+
+# Local screenshots and generated files.
+**/shots/

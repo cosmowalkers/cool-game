@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150">
+  <g stroke="#11130f" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 双手向前展开，左右倾斜避开头部 -->
+    <path fill="#32d7a1" d="M48 61 40 45 29 25l8-6 12 17 10 16Z"/>
+    <path fill="#f2b48d" d="m29 25-6-5 0-8 8-4 8 4-2 8Z"/>
+    <path fill="#32d7a1" d="m72 61 8-16 11-20-8-6-12 17-10 16Z"/>
+    <path fill="#f2b48d" d="m91 25 6-5 0-8-8-4-8 4 2 8Z"/>
+
+    <!-- 背对屏幕的头部 -->
+    <path fill="#f2b48d" d="M43 36c0-14 7-23 17-23s17 9 17 23v16H43Z"/>
+    <path fill="#22251f" d="M40 32C39 13 51 6 60 6s21 7 20 26l-8-7-5 8-8-9-8 9-5-8Z"/>
+    <path d="M48 43c7 4 17 4 24 0" fill="none"/>
+
+    <!-- 身体 -->
+    <path fill="#32d7a1" d="M39 50c7-7 35-7 42 0l8 52-17 9H48l-17-9Z"/>
+    <path fill="#f5f0df" d="M38 53h44l-5 17H43Z"/>
+
+    <!-- 普通书包 -->
+    <path fill="#343936" d="M40 53 49 45h23l9 8-2 48-19 8-19-8Z"/>
+    <rect x="44" y="49" width="32" height="47" rx="9" fill="#565b59"/>
+    <path fill="#ffcc33" d="M49 56h22v12H49Z"/>
+    <path fill="#2b302d" d="M50 75h20v13H50Z"/>
+    <path d="M47 52c-7 12-7 28-4 42m30-42c7 12 7 28 4 42" fill="none"/>
+    <path fill="#ff5b45" d="m60 76 8 6-8 7-8-7Z"/>
+    <path d="M52 62h16M53 82h14" fill="none"/>
+
+    <!-- 平行伸直的双腿 -->
+    <path fill="#32d7a1" d="M36 99h21v37H30l4-31Zm27 0h21l2 6 4 31H63Z"/>
+    <path fill="#ff5b45" d="M29 129h28v16H23c-7 0-5-16 6-16Z"/>
+    <path fill="#ff5b45" d="M63 129h28c11 0 13 16 6 16H63Z"/>
+  </g>
+</svg>

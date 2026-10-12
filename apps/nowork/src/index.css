@@ -76,6 +76,8 @@ input:focus-visible {
   display: flex;
   align-items: baseline;
   gap: 12px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .mini-brand strong {
