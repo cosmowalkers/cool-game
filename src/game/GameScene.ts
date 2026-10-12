@@ -138,7 +138,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.enemies,
       this.playerGroup,
-      (_enemy, player) => this.handlePlayerHit(player as ArcadeSprite)
+      (enemy) => this.handlePlayerHit(enemy as ArcadeSprite)
     );
     this.physics.add.overlap(
       this.pickups,
@@ -159,7 +159,7 @@ export class GameScene extends Phaser.Scene {
       }
     });
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      this.pointerTarget.set(pointer.x, pointer.y - (this.desktopPointer ? 0 : 74));
+      this.pointerTarget.set(pointer.x, pointer.y);
       this.pointerActive = true;
     });
     this.input.on("pointerup", () => {
@@ -233,6 +233,7 @@ export class GameScene extends Phaser.Scene {
 
   private startRun(): void {
     this.time.removeAllEvents();
+    this.time.paused = false;
     this.tweens.killAll();
     this.clearWorld();
     this.running = true;
@@ -732,7 +733,13 @@ export class GameScene extends Phaser.Scene {
 
   private handlePlayerHit(source: ArcadeImage | ArcadeSprite): void {
     if (!this.player || this.time.now < this.invulnerableUntil || !this.running) return;
-    if (source !== this.player && source.active) source.destroy();
+    if (
+      source !== this.player &&
+      source.active &&
+      !source.getData("boss")
+    ) {
+      source.destroy();
+    }
     this.lives -= 1;
     this.weaponLevel = Math.max(1, this.weaponLevel - 1);
     this.combo = 0;
@@ -918,6 +925,7 @@ export class GameScene extends Phaser.Scene {
   private pauseRun(): void {
     if (!this.running || this.pausedByUi) return;
     this.pausedByUi = true;
+    this.time.paused = true;
     this.physics.world.pause();
     this.tweens.pauseAll();
     this.audio.stopMusic();
@@ -927,6 +935,7 @@ export class GameScene extends Phaser.Scene {
   private resumeRun(): void {
     if (!this.running || !this.pausedByUi) return;
     this.pausedByUi = false;
+    this.time.paused = false;
     this.physics.world.resume();
     this.tweens.resumeAll();
     this.audio.startMusic();
@@ -936,6 +945,7 @@ export class GameScene extends Phaser.Scene {
   private returnHome(): void {
     this.running = false;
     this.pausedByUi = false;
+    this.time.paused = false;
     this.time.removeAllEvents();
     this.tweens.killAll();
     this.physics.world.resume();
