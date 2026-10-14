@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@rolldown/binding-linux-x64-gnu':
+        specifier: 1.2.13
+        version: 1.2.13
       '@rolldown/binding-wasm32-wasi':
         specifier: 1.2.13
         version: 1.2.13
@@ -888,8 +891,7 @@ snapshots:
   '@rolldown/binding-linux-s390x-gnu@1.2.13':
     optional: true
 
-  '@rolldown/binding-linux-x64-gnu@1.2.13':
-    optional: true
+  '@rolldown/binding-linux-x64-gnu@1.2.13': {}
 
   '@rolldown/binding-linux-x64-musl@1.2.13':
     optional: true
