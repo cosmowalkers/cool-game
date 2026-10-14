@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "pnpm --filter game-portal dev",
     "dev:nowork": "pnpm --filter nowork dev",
+    "dev:gomoku": "pnpm --filter gomoku dev",
     "build": "pnpm -r build && node scripts/assemble-dist.mjs",
     "build:nowork": "pnpm --filter nowork build",
     "build:portal": "pnpm --filter game-portal build",
-    "typecheck": "pnpm --filter nowork typecheck && pnpm --filter game-portal typecheck"
+    "typecheck": "pnpm --filter nowork typecheck && pnpm --filter gomoku typecheck && pnpm --filter junqi typecheck && pnpm --filter game-portal typecheck",
+    "dev:all": "bash scripts/dev.sh",
+    "dev:junqi": "pnpm --filter junqi dev"
   }
 }

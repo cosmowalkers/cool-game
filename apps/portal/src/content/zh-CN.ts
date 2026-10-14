@@ -24,6 +24,15 @@ export const copy = {
 
 export const games: GameEntry[] = [
   {
+    id: "junqi",
+    title: "军棋",
+    subtitle: "翻棋对决",
+    description: "运筹帷幄，步步为营。翻子搏杀，夺旗致胜。",
+    href: import.meta.env.VITE_JUNQI_URL || "/junqi/",
+    tone: "blue",
+    status: "available",
+  },
+  {
     id: "nowork",
     title: "NOWORK",
     subtitle: "下班大逃亡",
@@ -31,6 +40,15 @@ export const games: GameEntry[] = [
     href: import.meta.env.VITE_NOWORK_URL || "/nowork/",
     image: "/assets/nowork-player.png",
     tone: "yellow",
+    status: "available",
+  },
+  {
+    id: "gomoku",
+    title: "GOMOKU",
+    subtitle: "五子棋",
+    description: "落子成线，支持人机对战和双人对战。",
+    href: import.meta.env.VITE_GOMOKU_URL || "/gomoku/",
+    tone: "blue",
     status: "available",
   },
 ];

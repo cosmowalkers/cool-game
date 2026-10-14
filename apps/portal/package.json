@@ -5,9 +5,9 @@
   "type": "module",
   "description": "Cool Games 统一游戏入口",
   "scripts": {
-    "dev": "vite --host --port 4173",
+    "dev": "vite --host --port 4100",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host --port 4173",
+    "preview": "vite preview --host --port 4100",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

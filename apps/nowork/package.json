@@ -5,7 +5,7 @@
   "type": "module",
   "description": "NOWORK 下班大逃亡 —— 单人纵版办公室街机射击游戏",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite --host --port 4101",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "typecheck": "tsc --noEmit"

@@ -9,7 +9,8 @@ function GameCard({
   image,
   tone,
   status,
-}: (typeof games)[number]) {
+  index,
+}: (typeof games)[number] & { index: number }) {
   const available = status === "available";
 
   return (
@@ -25,7 +26,9 @@ function GameCard({
             <p className="game-card-kicker">{subtitle}</p>
             <h2>{title}</h2>
           </div>
-          <span className="game-status">{available ? "01" : "SOON"}</span>
+          <span className="game-status">
+            {available ? String(index + 1).padStart(2, "0") : "SOON"}
+          </span>
         </div>
         <p className="game-card-description">{description}</p>
         {available ? (
@@ -72,8 +75,8 @@ export default function App() {
       </section>
 
       <section className="games-grid" aria-label={copy.brand}>
-        {games.map((game) => (
-          <GameCard key={game.id} {...game} />
+        {games.map((game, index) => (
+          <GameCard key={game.id} {...game} index={index} />
         ))}
       </section>
 
