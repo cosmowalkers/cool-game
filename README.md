@@ -7,6 +7,8 @@ Cool Games 是多个 Web 游戏的统一 monorepo。每个游戏保留独立的�
 ```text
 apps/
   nowork/    # NOWORK · 下班大逃亡
+  gomoku/    # GOMOKU · 五子棋
+  junqi/     # 军棋 · 翻棋对决
   portal/    # 游戏统一入口
 scripts/
   assemble-dist.mjs
@@ -18,15 +20,23 @@ scripts/
 pnpm install
 pnpm dev          # 启动统一入口
 pnpm dev:nowork   # 单独启动 NOWORK
+pnpm dev:gomoku   # 单独启动五子棋
+pnpm dev:junqi    # 单独启动军棋
 ```
 
-开发时入口和游戏分别运行在不同端口。生产构建会把入口和 NOWORK 组装到同一个 `dist/`：
+开发时入口和游戏分别运行在不同端口。生产构建会把入口和各游戏组装到同一个 `dist/`：
 
 ```text
 dist/
   index.html
   assets/
   nowork/
+    index.html
+    assets/
+  gomoku/
+    index.html
+    assets/
+  junqi/
     index.html
     assets/
 ```
