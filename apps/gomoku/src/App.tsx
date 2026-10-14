@@ -1,19 +1,19 @@
 import {
-  ArrowLeft,
   Bot,
-  CircleDot,
+  Play,
   RotateCcw,
+  Sparkles,
   Trophy,
   Undo2,
   Users,
+  X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { copy } from "./content/zh-CN";
 import {
   BOARD_SIZE,
   boardFromMoves,
   chooseAiMove,
-  createBoard,
   hasFive,
   isBoardFull,
   type Board,
@@ -22,6 +22,7 @@ import {
 } from "./game/engine";
 
 type GameMode = "ai" | "local";
+type Screen = "menu" | "playing";
 type GameStatus = "playing" | "won" | "draw";
 
 const PLAYER_NAMES: Record<Player, string> = {
@@ -36,7 +37,7 @@ function getStatusText(
   winner: Player | null
 ): string {
   if (status === "draw") return copy.draw;
-  if (status === "won") return `${PLAYER_NAMES[winner ?? currentPlayer]}获胜`;
+  if (status === "won") return `${PLAYER_NAMES[winner ?? currentPlayer]}${copy.winSuffix}`;
   if (mode === "ai" && currentPlayer === 2) return copy.aiThinking;
   return mode === "ai" && currentPlayer === 1
     ? copy.yourTurn
@@ -45,90 +46,129 @@ function getStatusText(
       : copy.whiteTurn;
 }
 
-function GameModeButton({
-  active,
-  icon,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
+function IconButton({ label, children, onClick }: { label: string; children: React.ReactNode; onClick: () => void }) {
+  return <button type="button" className="icon-button" aria-label={label} title={label} onClick={onClick}>{children}</button>;
+}
+
+function Stone({ player, size = "md" }: { player: Player; size?: "sm" | "md" | "lg" }) {
+  return <span className={`stone stone-${player === 1 ? "black" : "white"} stone-${size}`} aria-hidden="true" />;
+}
+
+/* ============================== 新封面 ============================== */
+
+function Menu({ mode, onModeChange, onStart }: { mode: GameMode; onModeChange: (m: GameMode) => void; onStart: () => void }) {
   return (
-    <button
-      type="button"
-      className={`mode-button ${active ? "is-active" : ""}`}
-      aria-pressed={active}
-      onClick={onClick}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
+    <section className="menu-screen">
+      {/* 背景棋盘 */}
+      <div className="menu-bg" aria-hidden="true">
+        <div className="menu-bg-grid">
+          {Array.from({ length: 15 }, (_, r) => (
+            <div key={r} className="bg-row">
+              {Array.from({ length: 15 }, (_, c) => {
+                // 生成一个固定的棋局图案（五连 + 散子）
+                const pattern: (number | null)[][] = [
+                  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                  [null,null,null,null,null,null,null,1,null,null,null,null,null,null,null],
+                  [null,null,null,null,null,null,1,null,null,null,null,null,null,null,null],
+                  [null,null,null,null,null,1,null,null,null,null,null,null,null,null,null],
+                  [null,null,null,null,1,null,null,null,null,null,null,null,null,null,null],
+                  [null,null,null,1,null,null,null,null,null,null,null,null,2,null,null],
+                  [null,null,null,null,null,null,null,null,null,null,null,2,null,null,null],
+                  [null,null,null,null,null,null,null,null,null,null,2,null,null,null,null],
+                  [null,null,null,null,null,null,null,null,null,2,null,null,null,null,null],
+                  [null,null,null,null,null,null,null,null,2,null,null,null,null,null,null],
+                  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                  [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+                ];
+                const val = pattern[r]?.[c];
+                return (
+                  <span
+                    key={c}
+                    className={`bg-cell ${val === 1 ? "bg-black" : val === 2 ? "bg-white" : ""}`}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        {/* 光晕 */}
+        <div className="menu-glow" />
+        <div className="menu-particles">
+          {Array.from({ length: 12 }, (_, i) => (
+            <span key={i} className="particle" style={{
+              left: `${10 + Math.random() * 80}%`,
+              top: `${10 + Math.random() * 80}%`,
+              animationDelay: `${i * 0.4}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+            }} />
+          ))}
+        </div>
+      </div>
+
+      {/* 前景文字 */}
+      <div className="menu-foreground">
+        <div className="menu-hero">
+          <p className="menu-subtitle">— {copy.subtitle} —</p>
+          <h1>{copy.title}</h1>
+          <p className="menu-tagline">{copy.tagline}</p>
+        </div>
+
+        <div className="menu-controls">
+          <div className="mode-options">
+            <button
+              type="button"
+              className={`mode-pill ${mode === "ai" ? "is-active" : ""}`}
+              onClick={() => onModeChange("ai")}
+            >
+              <Bot size={18} />
+              <span>{copy.humanVsAi}</span>
+            </button>
+            <button
+              type="button"
+              className={`mode-pill ${mode === "local" ? "is-active" : ""}`}
+              onClick={() => onModeChange("local")}
+            >
+              <Users size={18} />
+              <span>{copy.localTwoPlayer}</span>
+            </button>
+          </div>
+          <button type="button" className="start-btn" onClick={onStart}>
+            <Play size={22} fill="currentColor" />
+            <span>{copy.start}</span>
+          </button>
+          <p className="menu-hint">{mode === "ai" ? copy.aiRole : copy.localRole}</p>
+        </div>
+      </div>
+    </section>
   );
 }
 
-function Stone({ player }: { player: Player }) {
-  return (
-    <span
-      className={`stone stone-${player === 1 ? "black" : "white"}`}
-      aria-hidden="true"
-    />
-  );
-}
+/* ============================== 棋盘 ============================== */
 
-function BoardView({
-  board,
-  moves,
-  mode,
-  status,
-  onPlace,
-}: {
-  board: Board;
-  moves: Move[];
-  mode: GameMode;
-  status: GameStatus;
-  onPlace: (row: number, column: number) => void;
-}) {
+function BoardView({ board, moves, mode, status, onPlace }: { board: Board; moves: Move[]; mode: GameMode; status: GameStatus; onPlace: (row: number, column: number) => void }) {
   const lastMove = moves[moves.length - 1];
   const isAiTurn = mode === "ai" && moves.length % 2 === 1 && status === "playing";
-
   return (
     <div className="board-wrap">
       <div className="board-coordinates board-coordinates-top" aria-hidden="true">
-        {Array.from({ length: BOARD_SIZE }, (_, index) => (
-          <span key={index}>{String.fromCharCode(65 + index)}</span>
-        ))}
+        {Array.from({ length: BOARD_SIZE }, (_, i) => <span key={i}>{String.fromCharCode(65 + i)}</span>)}
       </div>
       <div className="board-side-labels" aria-hidden="true">
-        {Array.from({ length: BOARD_SIZE }, (_, index) => (
-          <span key={index}>{index + 1}</span>
-        ))}
+        {Array.from({ length: BOARD_SIZE }, (_, i) => <span key={i}>{i + 1}</span>)}
       </div>
       <div className="gomoku-board" role="grid" aria-label={copy.boardLabel}>
-        {board.map((row, rowIndex) =>
-          row.map((cell, columnIndex) => {
-            const isLastMove =
-              lastMove?.row === rowIndex && lastMove.column === columnIndex;
-            const isDisabled = cell !== 0 || status !== "playing" || isAiTurn;
-            const playerName = cell === 1 ? "black" : "white";
-
+        {board.map((row, ri) =>
+          row.map((cell, ci) => {
+            const isLast = lastMove?.row === ri && lastMove?.column === ci;
             return (
-              <button
-                key={`${rowIndex}-${columnIndex}`}
-                type="button"
-                className={`board-cell ${isLastMove ? "is-last" : ""} ${
-                  cell ? `has-${playerName}` : ""
-                }`}
-                role="gridcell"
-                aria-label={
-                  cell
-                    ? copy.stoneLabel(playerName, rowIndex, columnIndex)
-                    : copy.emptyCellLabel(rowIndex, columnIndex)
-                }
-                disabled={isDisabled}
-                onClick={() => onPlace(rowIndex, columnIndex)}
+              <button key={`${ri}-${ci}`} type="button"
+                className={`board-cell ${isLast ? "is-last" : ""} ${cell ? `has-${cell === 1 ? "black" : "white"}` : ""}`}
+                disabled={cell !== 0 || status !== "playing" || isAiTurn}
+                onClick={() => onPlace(ri, ci)}
+                aria-label={cell ? copy.stoneLabel(cell === 1 ? "black" : "white", ri, ci) : copy.emptyCellLabel(ri, ci)}
               >
                 {cell !== 0 && <Stone player={cell} />}
               </button>
@@ -140,211 +180,114 @@ function BoardView({
   );
 }
 
+/* ============================== 弹窗 ============================== */
+
+function ResultDialog({ mode, winner, draw, onDismiss, onPlayAgain, onHome }: { mode: GameMode; winner: Player | null; draw?: boolean; onDismiss: () => void; onPlayAgain: () => void; onHome: () => void }) {
+  return (
+    <div className="modal-backdrop">
+      <section className="win-dialog" role="dialog" aria-modal="true">
+        <span className={`win-icon ${draw ? "win-icon-draw" : ""}`}>
+          {draw ? <X size={28} /> : <Trophy size={28} />}
+        </span>
+        {!draw && winner && <p className="win-sub"><Stone player={winner} size="sm" />{copy.winCongrats}</p>}
+        {draw && <p className="win-sub">{copy.drawSubtitle}</p>}
+        <h2>{draw ? copy.draw : mode === "ai" ? (winner === 2 ? copy.aiWins : copy.youWin) : copy.winTitle(PLAYER_NAMES[winner!])}</h2>
+        <div className="win-actions">
+          <button className="secondary-action" onClick={onDismiss}>{copy.winViewBoard}</button>
+          <button className="primary-action" autoFocus onClick={onPlayAgain}><RotateCcw size={17} />{copy.winPlayAgain}</button>
+        </div>
+        <button className="home-link" onClick={onHome}>{copy.backHome}</button>
+      </section>
+    </div>
+  );
+}
+
+/* ============================== 主组件 ============================== */
+
 export default function App() {
+  const [screen, setScreen] = useState<Screen>("menu");
   const [mode, setMode] = useState<GameMode>("ai");
   const [moves, setMoves] = useState<Move[]>([]);
   const [status, setStatus] = useState<GameStatus>("playing");
   const [winner, setWinner] = useState<Player | null>(null);
-  const [resultDismissed, setResultDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+
   const board = useMemo(() => boardFromMoves(moves), [moves]);
   const currentPlayer: Player = moves.length % 2 === 0 ? 1 : 2;
   const isAiTurn = mode === "ai" && currentPlayer === 2 && status === "playing";
+  const gRef = useRef({ moves, status, board });
 
-  const resetGame = () => {
-    setMoves([]);
-    setStatus("playing");
-    setWinner(null);
-    setResultDismissed(false);
-  };
+  useEffect(() => { gRef.current = { moves, status, board }; });
 
-  const switchMode = (nextMode: GameMode) => {
-    if (nextMode === mode) return;
-    setMode(nextMode);
-    resetGame();
-  };
+  const startGame = () => { setMoves([]); setStatus("playing"); setWinner(null); setDismissed(false); setScreen("playing"); };
+  const goHome = () => { setMoves([]); setStatus("playing"); setWinner(null); setDismissed(false); setScreen("menu"); };
 
-  const applyMove = (row: number, column: number, player: Player) => {
-    if (board[row][column] !== 0 || status !== "playing") return;
-
-    const nextMove: Move = { row, column, player };
-    const nextBoard = boardFromMoves([...moves, nextMove]);
-    const nextMoves = [...moves, nextMove];
-    setMoves(nextMoves);
-
-    if (hasFive(nextBoard, row, column, player)) {
-      setWinner(player);
-      setStatus("won");
-      setResultDismissed(false);
-    } else if (isBoardFull(nextBoard)) {
-      setStatus("draw");
-    }
-  };
+  const applyMove = useCallback((row: number, col: number, player: Player) => {
+    const { board: b, moves: ms, status: st } = gRef.current;
+    if (b[row][col] !== 0 || st !== "playing") return;
+    const nm = [...ms, { row, column: col, player }];
+    const nb = boardFromMoves(nm);
+    setMoves(nm);
+    if (hasFive(nb, row, col, player)) { setWinner(player); setStatus("won"); setDismissed(false); }
+    else if (isBoardFull(nb)) { setStatus("draw"); setDismissed(false); }
+  }, []);
 
   useEffect(() => {
     if (!isAiTurn) return;
-    const timer = window.setTimeout(() => {
-      const aiMove = chooseAiMove(board, 2);
-      if (aiMove) applyMove(aiMove.row, aiMove.column, 2);
-    }, 320);
-
-    return () => window.clearTimeout(timer);
-  }, [isAiTurn, board, moves, status]);
+    const t = setTimeout(() => {
+      const m = chooseAiMove(gRef.current.board, 2);
+      if (m) applyMove(m.row, m.column, 2);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [isAiTurn, applyMove]);
 
   const undo = () => {
-    if (moves.length === 0) return;
-    const removeCount = mode === "ai" && moves.length >= 2 ? 2 : 1;
-    setMoves(moves.slice(0, -removeCount));
-    setStatus("playing");
-    setWinner(null);
-    setResultDismissed(false);
+    if (moves.length === 0 || isAiTurn) return;
+    const n = mode === "ai" && moves.length >= 2 ? 2 : 1;
+    setMoves(moves.slice(0, -n)); setStatus("playing"); setWinner(null); setDismissed(false);
   };
+
+  const inGame = screen === "playing";
+  const showResult = inGame && (status === "won" || status === "draw") && !dismissed;
 
   return (
     <main className="gomoku-shell">
       <header className="topbar">
-        <a className="back-link" href="/" aria-label={copy.backToPortal}>
-          <ArrowLeft size={18} aria-hidden="true" />
-          <span>{copy.backToPortal}</span>
-        </a>
-        <div className="brand-lockup">
-          <CircleDot size={18} aria-hidden="true" />
+        <a className="mini-brand" href="/">
           <strong>{copy.brand}</strong>
+          <span>{copy.title}</span>
+        </a>
+        <div className="topbar-actions">
+          {inGame && <>
+            <IconButton label={copy.undo} onClick={undo}><Undo2 size={20} /></IconButton>
+            <IconButton label={copy.restart} onClick={startGame}><RotateCcw size={20} /></IconButton>
+          </>}
         </div>
-        <button
-          type="button"
-          className="restart-button"
-          title={copy.restart}
-          aria-label={copy.restart}
-          onClick={resetGame}
-        >
-          <RotateCcw size={18} aria-hidden="true" />
-        </button>
       </header>
 
-      <section className="game-intro">
-        <div>
-          <p className="eyebrow">{copy.subtitle}</p>
-          <h1>{copy.title}</h1>
-        </div>
-        <p className="intro-note">
-          {mode === "ai" ? copy.aiRole : copy.localRole}
-        </p>
-      </section>
+      {screen === "menu" && <Menu mode={mode} onModeChange={setMode} onStart={startGame} />}
 
-      <section className="game-workspace">
-        <div className="board-column">
-          <div className="mode-switch" aria-label={copy.modeLabel}>
-            <span className="control-label">{copy.modeLabel}</span>
-            <div className="mode-buttons">
-              <GameModeButton
-                active={mode === "ai"}
-                icon={<Bot size={16} aria-hidden="true" />}
-                label={copy.humanVsAi}
-                onClick={() => switchMode("ai")}
-              />
-              <GameModeButton
-                active={mode === "local"}
-                icon={<Users size={16} aria-hidden="true" />}
-                label={copy.localTwoPlayer}
-                onClick={() => switchMode("local")}
-              />
-            </div>
-          </div>
-
+      {screen === "playing" && (
+        <section className="game-stage">
           <div className={`status-line status-${status}`}>
-            <span className={`turn-dot player-${winner ?? currentPlayer}`} />
-            <strong>{getStatusText(mode, status, currentPlayer, winner)}</strong>
-            <span>{copy.moveCount(moves.length)}</span>
-          </div>
-
-          <BoardView
-            board={board}
-            moves={moves}
-            mode={mode}
-            status={status}
-            onPlace={(row, column) => applyMove(row, column, currentPlayer)}
-          />
-        </div>
-
-        <aside className="info-panel">
-          <div className="player-card player-card-black">
-            <span className="player-stone stone-black" aria-hidden="true" />
-            <div>
-              <span>{copy.black}</span>
-              <strong>{mode === "ai" ? "YOU" : "P1"}</strong>
+            <div className="status-players">
+              <span className="status-player"><Stone player={1} size="sm" /><span>{mode === "ai" ? "YOU" : "P1"}</span></span>
+              <span className="status-vs">VS</span>
+              <span className="status-player"><Stone player={2} size="sm" /><span>{mode === "ai" ? "AI" : "P2"}</span></span>
+            </div>
+            <div className="status-info">
+              <span className={`turn-dot player-${winner ?? currentPlayer}`} />
+              <strong>{getStatusText(mode, status, currentPlayer, winner)}</strong>
+              <span className="move-count">{copy.moveCount(moves.length)}</span>
             </div>
           </div>
-          <div className="player-card player-card-white">
-            <span className="player-stone stone-white" aria-hidden="true" />
-            <div>
-              <span>{copy.white}</span>
-              <strong>{mode === "ai" ? "AI" : "P2"}</strong>
-            </div>
-          </div>
+          <BoardView board={board} moves={moves} mode={mode} status={status} onPlace={(r, c) => applyMove(r, c, currentPlayer)} />
+          <div className="game-rules"><p>{copy.ruleLineOne}</p><p>{copy.ruleLineTwo}</p></div>
+        </section>
+      )}
 
-          <div className="rules-block">
-            <p className="control-label">{copy.rulesTitle}</p>
-            <p>{copy.ruleLineOne}</p>
-            <p>{copy.ruleLineTwo}</p>
-          </div>
-
-          <div className="action-row">
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={moves.length === 0 || isAiTurn}
-              onClick={undo}
-            >
-              <Undo2 size={17} aria-hidden="true" />
-              <span>{copy.undo}</span>
-            </button>
-            <button type="button" className="primary-button" onClick={resetGame}>
-              <RotateCcw size={17} aria-hidden="true" />
-              <span>{copy.restart}</span>
-            </button>
-          </div>
-        </aside>
-      </section>
-
-      {status === "won" && winner !== null && !resultDismissed && (
-        <div
-          className="dialog-backdrop"
-          onClick={() => setResultDismissed(true)}
-        >
-          <div
-            className="win-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="win-dialog-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <span className="win-dialog-icon" aria-hidden="true">
-              <Trophy size={28} />
-            </span>
-            <p className="win-dialog-note">
-              <span className={`player-stone stone-${winner === 1 ? "black" : "white"}`} aria-hidden="true" />
-              {copy.winCongrats}
-            </p>
-            <h2 id="win-dialog-title">{copy.winTitle(PLAYER_NAMES[winner])}</h2>
-            <div className="win-dialog-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => setResultDismissed(true)}
-              >
-                {copy.winViewBoard}
-              </button>
-              <button
-                type="button"
-                className="primary-button"
-                autoFocus
-                onClick={resetGame}
-              >
-                {copy.winPlayAgain}
-              </button>
-            </div>
-          </div>
-        </div>
+      {showResult && (
+        <ResultDialog mode={mode} winner={winner} draw={status === "draw"} onDismiss={() => setDismissed(true)} onPlayAgain={startGame} onHome={goHome} />
       )}
     </main>
   );
