@@ -13,5 +13,8 @@
     "typecheck": "pnpm --filter nowork typecheck && pnpm --filter gomoku typecheck && pnpm --filter junqi typecheck && pnpm --filter game-portal typecheck",
     "dev:all": "bash scripts/dev.sh",
     "dev:junqi": "pnpm --filter junqi dev"
+  },
+  "devDependencies": {
+    "@rolldown/binding-wasm32-wasi": "1.2.13"
   }
 }
