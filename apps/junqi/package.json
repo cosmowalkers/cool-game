@@ -1,0 +1,25 @@
+{
+  "name": "junqi",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "军棋翻棋 —— 军事推演双人对弈",
+  "scripts": {
+    "dev": "vite --host --port 4103",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
+  }
+}
