@@ -7,6 +7,7 @@ export interface GameEntry {
   description: string;
   href: string;
   image?: string;
+  art?: "gomoku" | "junqi";
   tone: GameTone;
   status: "available" | "coming";
 }
@@ -29,6 +30,7 @@ export const games: GameEntry[] = [
     subtitle: "翻棋对决",
     description: "运筹帷幄，步步为营。翻子搏杀，夺旗致胜。",
     href: import.meta.env.VITE_JUNQI_URL || "/junqi/",
+    art: "junqi",
     tone: "blue",
     status: "available",
   },
@@ -48,6 +50,7 @@ export const games: GameEntry[] = [
     subtitle: "五子棋",
     description: "落子成线，支持人机对战和双人对战。",
     href: import.meta.env.VITE_GOMOKU_URL || "/gomoku/",
+    art: "gomoku",
     tone: "blue",
     status: "available",
   },

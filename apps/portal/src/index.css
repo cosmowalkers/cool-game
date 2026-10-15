@@ -221,6 +221,20 @@ h1 {
   filter: drop-shadow(8px 12px 0 rgb(16 20 18 / 22%));
 }
 
+.game-card-cover {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 78%;
+  max-width: 220px;
+  filter: drop-shadow(8px 12px 0 rgb(16 20 18 / 22%));
+}
+
+.game-card-cover svg {
+  display: block;
+  height: auto;
+}
+
 .game-index {
   position: absolute;
   z-index: 2;
@@ -381,6 +395,10 @@ h1 {
   .game-card-art img {
     width: 38%;
     max-height: 150px;
+  }
+
+  .game-card-cover {
+    width: 46%;
   }
 }
 

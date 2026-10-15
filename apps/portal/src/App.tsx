@@ -1,5 +1,11 @@
 import { ArrowUpRight, Gamepad2, Sparkles } from "lucide-react";
+import { GomokuCover, JunqiCover } from "./covers";
 import { copy, games } from "./content/zh-CN";
+
+const COVER_ART = {
+  gomoku: <GomokuCover />,
+  junqi: <JunqiCover />,
+} as const;
 
 function GameCard({
   title,
@@ -7,16 +13,24 @@ function GameCard({
   description,
   href,
   image,
+  art,
   tone,
   status,
   index,
 }: (typeof games)[number] & { index: number }) {
   const available = status === "available";
+  const coverArt = art ? COVER_ART[art] : null;
 
   return (
     <article className={`game-card tone-${tone} ${available ? "" : "is-coming"}`}>
       <div className="game-card-art" aria-hidden="true">
-        {image ? <img src={image} alt="" /> : <Gamepad2 size={72} strokeWidth={1.2} />}
+        {image ? (
+          <img src={image} alt="" />
+        ) : coverArt ? (
+          <span className="game-card-cover">{coverArt}</span>
+        ) : (
+          <Gamepad2 size={72} strokeWidth={1.2} />
+        )}
         <span className="game-index">/{title.slice(0, 2)}</span>
       </div>
 
