@@ -260,7 +260,7 @@ export class GameScene extends Phaser.Scene {
       .setDepth(10)
       .setCollideWorldBounds(true);
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setCircle(19, 19, 42);
+    body.setCircle(22, 16, 39);
     this.playerGroup.add(this.player);
 
     gameBridge.reset();
@@ -568,6 +568,7 @@ export class GameScene extends Phaser.Scene {
         .setData("pierce", shot.pierce);
       const body = bullet.body as Phaser.Physics.Arcade.Body;
       body.enable = true;
+      bullet.setData("previousX", bullet.x).setData("previousY", bullet.y);
       body.setVelocity(Math.sin(shot.angle) * 125, -580);
     }
     if (this.time.now % 3 < 1) this.audio.sfx("shoot");
@@ -576,8 +577,62 @@ export class GameScene extends Phaser.Scene {
   private updatePlayerBullets(): void {
     for (const item of this.playerBullets.getChildren()) {
       const bullet = item as ArcadeImage;
-      if (bullet.active && bullet.y < -40) this.recycleBullet(bullet);
+      if (!bullet.active) continue;
+
+      for (const enemyObject of this.enemies.getChildren()) {
+        const enemy = enemyObject as ArcadeSprite;
+        if (enemy.active && this.isPlayerBulletTouchingEnemy(bullet, enemy)) {
+          this.handleBulletHit(
+            bullet as Phaser.Types.Physics.Arcade.GameObjectWithBody,
+            enemy as Phaser.Types.Physics.Arcade.GameObjectWithBody
+          );
+          if (!bullet.active) break;
+        }
+      }
+
+      if (bullet.active) {
+        bullet.setData("previousX", bullet.x);
+        bullet.setData("previousY", bullet.y);
+        if (bullet.y < -40) this.recycleBullet(bullet);
+      }
     }
+  }
+
+  private isPlayerBulletTouchingEnemy(
+    bullet: ArcadeImage,
+    enemy: ArcadeSprite
+  ): boolean {
+    const bulletBody = bullet.body as Phaser.Physics.Arcade.Body;
+    const enemyBody = enemy.body as Phaser.Physics.Arcade.Body;
+    const startX = (bullet.getData("previousX") as number | undefined) ?? bullet.x;
+    const startY = (bullet.getData("previousY") as number | undefined) ?? bullet.y;
+    const endX = bulletBody.center.x;
+    const endY = bulletBody.center.y;
+    const targetX = enemyBody.center.x;
+    const targetY = enemyBody.center.y;
+    const segmentX = endX - startX;
+    const segmentY = endY - startY;
+    const segmentLengthSquared = segmentX * segmentX + segmentY * segmentY;
+    const projection =
+      segmentLengthSquared === 0
+        ? 0
+        : Phaser.Math.Clamp(
+            ((targetX - startX) * segmentX + (targetY - startY) * segmentY) /
+              segmentLengthSquared,
+            0,
+            1
+          );
+    const closestX = startX + segmentX * projection;
+    const closestY = startY + segmentY * projection;
+    const bulletRadius = Math.max(bulletBody.halfWidth, bulletBody.halfHeight);
+    const enemyRadius = enemyBody.isCircle
+      ? enemyBody.radius
+      : Math.max(enemyBody.halfWidth, enemyBody.halfHeight);
+    const radius = bulletRadius + enemyRadius + 2;
+    const distanceX = targetX - closestX;
+    const distanceY = targetY - closestY;
+
+    return distanceX * distanceX + distanceY * distanceY <= radius * radius;
   }
 
   private handleBulletHit(
@@ -698,13 +753,51 @@ export class GameScene extends Phaser.Scene {
   private updateEnemyBullets(): void {
     for (const item of this.enemyBullets.getChildren()) {
       const bullet = item as ArcadeImage;
-      if (
-        bullet.active &&
-        (bullet.y > HEIGHT + 40 || bullet.y < -40 || bullet.x < -40 || bullet.x > WIDTH + 40)
-      ) {
+      if (!bullet.active) continue;
+
+      if (this.player && this.isEnemyBulletTouchingPlayer(bullet)) {
+        this.handlePlayerHit(bullet);
+        if (!bullet.active) continue;
+      }
+
+      bullet.setData("previousX", bullet.x);
+      bullet.setData("previousY", bullet.y);
+      if (bullet.y > HEIGHT + 40 || bullet.y < -40 || bullet.x < -40 || bullet.x > WIDTH + 40) {
         this.recycleBullet(bullet);
       }
     }
+  }
+
+  private isEnemyBulletTouchingPlayer(bullet: ArcadeImage): boolean {
+    if (!this.player) return false;
+
+    const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
+    const bulletBody = bullet.body as Phaser.Physics.Arcade.Body;
+    const startX = (bullet.getData("previousX") as number | undefined) ?? bullet.x;
+    const startY = (bullet.getData("previousY") as number | undefined) ?? bullet.y;
+    const endX = bulletBody.center.x;
+    const endY = bulletBody.center.y;
+    const targetX = playerBody.center.x;
+    const targetY = playerBody.center.y;
+    const segmentX = endX - startX;
+    const segmentY = endY - startY;
+    const segmentLengthSquared = segmentX * segmentX + segmentY * segmentY;
+    const projection =
+      segmentLengthSquared === 0
+        ? 0
+        : Phaser.Math.Clamp(
+            ((targetX - startX) * segmentX + (targetY - startY) * segmentY) /
+              segmentLengthSquared,
+            0,
+            1
+          );
+    const closestX = startX + segmentX * projection;
+    const closestY = startY + segmentY * projection;
+    const radius = playerBody.radius + bulletBody.radius + 2;
+    const distanceX = targetX - closestX;
+    const distanceY = targetY - closestY;
+
+    return distanceX * distanceX + distanceY * distanceY <= radius * radius;
   }
 
   private fireEnemyBullet(
@@ -727,7 +820,8 @@ export class GameScene extends Phaser.Scene {
       .setDepth(7);
     const body = bullet.body as Phaser.Physics.Arcade.Body;
     body.enable = true;
-    body.setCircle(large ? 8 : 5);
+    body.setCircle(large ? 11 : 7);
+    bullet.setData("previousX", x).setData("previousY", y);
     body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
   }
 
@@ -738,7 +832,8 @@ export class GameScene extends Phaser.Scene {
       source.active &&
       !source.getData("boss")
     ) {
-      source.destroy();
+      if (this.enemyBullets.contains(source)) this.recycleBullet(source as ArcadeImage);
+      else source.destroy();
     }
     this.lives -= 1;
     this.weaponLevel = Math.max(1, this.weaponLevel - 1);
@@ -816,7 +911,7 @@ export class GameScene extends Phaser.Scene {
     this.boss.x = WIDTH / 2 + Math.sin(time / (680 - this.bossPhase * 70)) * 150;
     const nextFireAt = this.boss.getData("nextFireAt") as number;
     if (time < nextFireAt || this.boss.y < 100) return;
-    const delay = Math.max(520, 1180 - this.bossPhase * 170);
+    const delay = Math.max(620, 1400 - this.bossPhase * 190);
     this.boss.setData("nextFireAt", time + delay);
     this.fireBossPattern();
   }
@@ -827,7 +922,7 @@ export class GameScene extends Phaser.Scene {
     const y = this.boss.y + 55;
 
     if (this.levelIndex === 0) {
-      const count = this.bossPhase === 1 ? 5 : 8;
+      const count = this.bossPhase === 1 ? 4 : 6;
       for (let index = 0; index < count; index += 1) {
         const spread = (index - (count - 1) / 2) * 0.16;
         this.fireEnemyBullet(x, y, Math.PI / 2 + spread, 205 + this.bossPhase * 18);
@@ -836,14 +931,14 @@ export class GameScene extends Phaser.Scene {
         this.spawnEnemy("requirement", 0, 1, "line", false);
       }
     } else if (this.levelIndex === 1) {
-      const count = this.bossPhase === 1 ? 9 : 13;
+      const count = this.bossPhase === 1 ? 7 : 10;
       for (let index = 0; index < count; index += 1) {
         const angle = (Math.PI * 2 * index) / count + this.time.now / 900;
         if (Math.sin(angle) > -0.45) this.fireEnemyBullet(x, y, angle, 175);
       }
       if (this.bossPhase === 2) {
         const target = Phaser.Math.Angle.Between(x, y, this.player.x, this.player.y);
-        this.fireEnemyBullet(x, y, target, 285, true);
+        this.fireEnemyBullet(x, y, target, 255, true);
       }
     } else {
       if (this.bossPhase === 1) {
@@ -853,12 +948,12 @@ export class GameScene extends Phaser.Scene {
       } else if (this.bossPhase === 2) {
         const target = Phaser.Math.Angle.Between(x, y, this.player.x, this.player.y);
         for (const offset of [-0.18, 0, 0.18]) {
-          this.fireEnemyBullet(x, y, target + offset, 285, offset === 0);
+          this.fireEnemyBullet(x, y, target + offset, 255, offset === 0);
         }
       } else {
         this.createOvertimeLane(Phaser.Math.Between(65, WIDTH - 65));
-        for (let index = 0; index < 10; index += 1) {
-          const angle = Math.PI / 2 - 0.72 + index * 0.16;
+        for (let index = 0; index < 8; index += 1) {
+          const angle = Math.PI / 2 - 0.56 + index * 0.16;
           this.fireEnemyBullet(x, y, angle, 245);
         }
       }
@@ -878,9 +973,9 @@ export class GameScene extends Phaser.Scene {
       repeat: 2,
       onComplete: () => {
         warning.destroy();
-        for (let index = 0; index < 8; index += 1) {
+        for (let index = 0; index < 6; index += 1) {
           this.time.delayedCall(index * 75, () =>
-            this.fireEnemyBullet(x, -20, Math.PI / 2, 430, true)
+            this.fireEnemyBullet(x, -20, Math.PI / 2, 360, true)
           );
         }
       },
@@ -1013,6 +1108,7 @@ export class GameScene extends Phaser.Scene {
 
   private recycleBullet(bullet: ArcadeImage): void {
     bullet.setActive(false).setVisible(false);
+    bullet.setData("previousX", 0).setData("previousY", 0);
     const body = bullet.body as Phaser.Physics.Arcade.Body;
     body.stop();
     body.enable = false;
