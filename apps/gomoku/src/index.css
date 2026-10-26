@@ -10,7 +10,7 @@
 }
 *{box-sizing:border-box;letter-spacing:0}
 html,body,#root{width:100%;min-height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow-x:hidden}
 button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 button{color:inherit;touch-action:manipulation}
 button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
@@ -27,13 +27,13 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 .icon-button:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
 
 /* ===== 封面 ===== */
-.menu-screen{position:fixed;inset:64px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.menu-screen{position:fixed;inset:64px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:auto}
 
 /* 背景网格棋盘 */
 .menu-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.12}
 .menu-bg-grid{display:flex;flex-direction:column;gap:0;padding:40px;transform:scale(.85) rotate(-2deg)}
 .bg-row{display:flex;gap:0}
-.bg-cell{width:18px;height:18px;border-radius:50%;margin:2px;transition:all 2s ease}
+.bg-cell{width:18px;height:18px;border-radius:50%;margin:2px;transition:transform 2s ease,background-color 2s ease}
 .bg-black{background:var(--ink);transform:scale(1.15)}
 .bg-white{background:var(--accent);transform:scale(1.15)}
 
@@ -55,7 +55,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 
 .menu-controls{display:flex;flex-direction:column;align-items:center;gap:20px}
 .mode-options{display:flex;gap:2px;padding:5px;border:1px solid var(--line);border-radius:10px;background:var(--bg-soft)}
-.mode-pill{display:flex;align-items:center;gap:10px;padding:10px 20px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:all .16s}
+.mode-pill{display:flex;align-items:center;gap:10px;padding:10px 20px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:color .16s,background-color .16s}
 .mode-pill:hover{color:var(--ink);background:var(--panel)}
 .mode-pill.is-active{background:var(--accent);color:#fff}
 

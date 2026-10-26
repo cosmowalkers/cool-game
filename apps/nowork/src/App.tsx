@@ -17,7 +17,6 @@ import {
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { t } from "@/content/zh-CN";
 import { gameBridge } from "@/game/bridge";
-import { createGame } from "@/game/createGame";
 import type { GameSettings, GameSnapshot } from "@/game/types";
 
 const ASSET_ROOT = `${import.meta.env.BASE_URL}assets/`;
@@ -44,6 +43,44 @@ function IconButton({
   );
 }
 
+function useDialogAccessibility(
+  dialogRef: React.RefObject<HTMLElement | null>,
+  initialRef: React.RefObject<HTMLInputElement | null>,
+  onClose: () => void
+) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    initialRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [href]'
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previous?.focus();
+    };
+  }, [dialogRef, initialRef]);
+}
 function StatLine({
   label,
   value,
@@ -78,8 +115,16 @@ function PhaserStage() {
 
   useEffect(() => {
     if (!mountRef.current) return;
-    const game = createGame(mountRef.current);
-    return () => game.destroy(true);
+    let game: import("phaser").Game | undefined;
+    let cancelled = false;
+    void import("@/game/createGame").then(({ createGame }) => {
+      if (cancelled || !mountRef.current) return;
+      game = createGame(mountRef.current);
+    });
+    return () => {
+      cancelled = true;
+      game?.destroy(true);
+    };
   }, []);
 
   return <div ref={mountRef} className="phaser-mount" />;
@@ -198,13 +243,16 @@ function SettingsDialog({
   onChange: (settings: GameSettings) => void;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  useDialogAccessibility(dialogRef, firstInputRef, onClose);
   return (
     <div className="modal-backdrop" role="presentation">
-      <section className="settings-dialog" role="dialog" aria-modal="true">
+      <section ref={dialogRef} className="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="nowork-settings-title">
         <header className="dialog-header">
           <div>
             <p className="eyebrow">{t("systemLabel")}</p>
-            <h2>{t("settings")}</h2>
+            <h2 id="nowork-settings-title">{t("settings")}</h2>
           </div>
           <IconButton label={t("close")} onClick={onClose}>
             <X size={20} />
@@ -218,6 +266,7 @@ function SettingsDialog({
           </span>
           <strong>{Math.round(settings.musicVolume * 100)}</strong>
           <input
+            ref={firstInputRef}
             type="range"
             min="0"
             max="1"
@@ -302,7 +351,7 @@ function Menu({
 
       <div className="menu-art" aria-hidden="true">
         <span className="exit-sign">{t("exitLabel")}</span>
-        <img src={`${ASSET_ROOT}player.png`} alt="" />
+        <img src={`${ASSET_ROOT}player.png`} alt="" width="240" height="300" />
         <span className="paper paper-one" />
         <span className="paper paper-two" />
         <span className="paper paper-three" />

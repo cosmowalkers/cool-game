@@ -35,7 +35,7 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
-  touch-action: none;
+  touch-action: auto;
 }
 
 button,
@@ -160,6 +160,7 @@ input:focus-visible {
   display: block;
   width: 100% !important;
   height: 100% !important;
+  touch-action: none;
 }
 
 .side-hud {

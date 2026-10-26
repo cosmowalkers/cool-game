@@ -30,6 +30,45 @@ function IconButton({ label, children, onClick, disabled }: {
   );
 }
 
+function useDialogAccessibility(
+  dialogRef: React.RefObject<HTMLElement | null>,
+  initialRef: React.RefObject<HTMLButtonElement | null>,
+  onClose: () => void
+) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    initialRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled])'
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previous?.focus();
+    };
+  }, [dialogRef, initialRef]);
+}
+
 /** 棋子上的两字军衔，竖排 */
 const PIECE_LABEL: Record<number, [string, string]> = {
   [Rank.Siling]: ["司", "令"],
@@ -208,10 +247,10 @@ function Menu({ mode, onModeChange, onStart }: { mode: GameMode; onModeChange: (
         </div>
         <div className="menu-controls">
           <div className="mode-options">
-            <button type="button" className={`mode-pill ${mode === "ai" ? "is-active" : ""}`} onClick={() => onModeChange("ai")}><Bot size={18} /><span>{copy.humanVsAi}</span></button>
-            <button type="button" className={`mode-pill ${mode === "local" ? "is-active" : ""}`} onClick={() => onModeChange("local")}><Users size={18} /><span>{copy.localTwoPlayer}</span></button>
+            <button type="button" className={`mode-pill ${mode === "ai" ? "is-active" : ""}`} aria-pressed={mode === "ai"} onClick={() => onModeChange("ai")}><Bot size={18} aria-hidden="true" /><span>{copy.humanVsAi}</span></button>
+            <button type="button" className={`mode-pill ${mode === "local" ? "is-active" : ""}`} aria-pressed={mode === "local"} onClick={() => onModeChange("local")}><Users size={18} aria-hidden="true" /><span>{copy.localTwoPlayer}</span></button>
           </div>
-          <button type="button" className="start-btn" onClick={onStart}><Swords size={20} /><span>{copy.start}</span></button>
+          <button type="button" className="start-btn" onClick={onStart}><Swords size={20} aria-hidden="true" /><span>{copy.start}</span></button>
           <p className="menu-hint">{mode === "ai" ? copy.aiHint : copy.localHint}</p>
         </div>
       </div>
@@ -222,12 +261,15 @@ function Menu({ mode, onModeChange, onStart }: { mode: GameMode; onModeChange: (
 /* ============================== 规则弹窗 ============================== */
 
 function RulesDialog({ onClose }: { onClose: () => void }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useDialogAccessibility(dialogRef, closeRef, onClose);
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <section className="rules-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop">
+      <section ref={dialogRef} className="rules-dialog" role="dialog" aria-modal="true" aria-labelledby="junqi-rules-title">
         <header className="rules-header">
-          <h2><BookOpen size={20} />{copy.rules}</h2>
-          <IconButton label={copy.close} onClick={onClose}><X size={18} /></IconButton>
+          <h2 id="junqi-rules-title"><BookOpen size={20} aria-hidden="true" />{copy.rules}</h2>
+          <button ref={closeRef} type="button" className="icon-button" aria-label={copy.close} title={copy.close} onClick={onClose}><X size={18} /></button>
         </header>
         <div className="rules-body">
           <div className="rank-table">
@@ -265,6 +307,9 @@ function ResultDialog({ mode, result, onDismiss, onPlayAgain, onHome }: {
   mode: GameMode; result: Side | "draw";
   onDismiss: () => void; onPlayAgain: () => void; onHome: () => void;
 }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const playAgainRef = useRef<HTMLButtonElement>(null);
+  useDialogAccessibility(dialogRef, playAgainRef, onDismiss);
   const isDraw = result === "draw";
   const title = isDraw
     ? copy.drawTitle
@@ -273,13 +318,13 @@ function ResultDialog({ mode, result, onDismiss, onPlayAgain, onHome }: {
       : copy.winTitle(result);
   return (
     <div className="modal-backdrop">
-      <section className="win-dialog" role="dialog" aria-modal="true">
-        <span className={`win-icon ${isDraw ? "win-icon-draw" : ""}`}>{isDraw ? <Minus size={28} /> : <Trophy size={28} />}</span>
-        <p className="win-sub"><Flag size={14} />{isDraw ? copy.drawSub : copy.winCongrats}</p>
-        <h2>{title}</h2>
+      <section ref={dialogRef} className="win-dialog" role="dialog" aria-modal="true" aria-labelledby="junqi-result-title">
+        <span className={`win-icon ${isDraw ? "win-icon-draw" : ""}`}>{isDraw ? <Minus size={28} aria-hidden="true" /> : <Trophy size={28} aria-hidden="true" />}</span>
+        <p className="win-sub"><Flag size={14} aria-hidden="true" />{isDraw ? copy.drawSub : copy.winCongrats}</p>
+        <h2 id="junqi-result-title">{title}</h2>
         <div className="win-actions">
           <button className="secondary-action" onClick={onDismiss}>{copy.winViewBoard}</button>
-          <button className="primary-action" autoFocus onClick={onPlayAgain}><RotateCcw size={17} />{copy.winPlayAgain}</button>
+          <button ref={playAgainRef} className="primary-action" onClick={onPlayAgain}><RotateCcw size={17} aria-hidden="true" />{copy.winPlayAgain}</button>
         </div>
         <button className="home-link" onClick={onHome}>{copy.backHome}</button>
       </section>
@@ -428,7 +473,7 @@ export default function App() {
         <div className="topbar-actions">
           <IconButton label={copy.rules} onClick={() => setRulesOpen(true)}><BookOpen size={20} /></IconButton>
           {inGame && <>
-            <span className="turn-indicator">
+            <span className="turn-indicator" aria-live="polite">
               <span className={`turn-dot turn-${currentSide}`} />
               {currentSide === "red" ? copy.redTurn : copy.blackTurn}
               {darkCount > 0 && <span className="flip-remain">{copy.flipCount(darkCount)}</span>}
@@ -458,7 +503,7 @@ export default function App() {
                 )}
               </div>
             </div>
-            {message && <div className="game-message">{message}</div>}
+            {message && <div className="game-message" role="status" aria-live="polite">{message}</div>}
           </div>
         </section>
       )}

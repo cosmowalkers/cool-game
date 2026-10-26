@@ -54,6 +54,47 @@ function Stone({ player, size = "md" }: { player: Player; size?: "sm" | "md" | "
   return <span className={`stone stone-${player === 1 ? "black" : "white"} stone-${size}`} aria-hidden="true" />;
 }
 
+function useDialogAccessibility(
+  dialogRef: React.RefObject<HTMLElement | null>,
+  initialRef: React.RefObject<HTMLButtonElement | null>,
+  onClose: () => void
+) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    initialRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled])'
+        )
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previous?.focus();
+    };
+  }, [dialogRef, initialRef]);
+}
+
 /* ============================== 新封面 ============================== */
 
 function Menu({ mode, onModeChange, onStart }: { mode: GameMode; onModeChange: (m: GameMode) => void; onStart: () => void }) {
@@ -121,22 +162,24 @@ function Menu({ mode, onModeChange, onStart }: { mode: GameMode; onModeChange: (
             <button
               type="button"
               className={`mode-pill ${mode === "ai" ? "is-active" : ""}`}
+              aria-pressed={mode === "ai"}
               onClick={() => onModeChange("ai")}
             >
-              <Bot size={18} />
+              <Bot size={18} aria-hidden="true" />
               <span>{copy.humanVsAi}</span>
             </button>
             <button
               type="button"
               className={`mode-pill ${mode === "local" ? "is-active" : ""}`}
+              aria-pressed={mode === "local"}
               onClick={() => onModeChange("local")}
             >
-              <Users size={18} />
+              <Users size={18} aria-hidden="true" />
               <span>{copy.localTwoPlayer}</span>
             </button>
           </div>
           <button type="button" className="start-btn" onClick={onStart}>
-            <Play size={22} fill="currentColor" />
+            <Play size={22} fill="currentColor" aria-hidden="true" />
             <span>{copy.start}</span>
           </button>
           <p className="menu-hint">{mode === "ai" ? copy.aiRole : copy.localRole}</p>
@@ -183,18 +226,21 @@ function BoardView({ board, moves, mode, status, onPlace }: { board: Board; move
 /* ============================== 弹窗 ============================== */
 
 function ResultDialog({ mode, winner, draw, onDismiss, onPlayAgain, onHome }: { mode: GameMode; winner: Player | null; draw?: boolean; onDismiss: () => void; onPlayAgain: () => void; onHome: () => void }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const playAgainRef = useRef<HTMLButtonElement>(null);
+  useDialogAccessibility(dialogRef, playAgainRef, onDismiss);
   return (
     <div className="modal-backdrop">
-      <section className="win-dialog" role="dialog" aria-modal="true">
+      <section ref={dialogRef} className="win-dialog" role="dialog" aria-modal="true" aria-labelledby="gomoku-result-title">
         <span className={`win-icon ${draw ? "win-icon-draw" : ""}`}>
-          {draw ? <X size={28} /> : <Trophy size={28} />}
+          {draw ? <X size={28} aria-hidden="true" /> : <Trophy size={28} aria-hidden="true" />}
         </span>
         {!draw && winner && <p className="win-sub"><Stone player={winner} size="sm" />{copy.winCongrats}</p>}
         {draw && <p className="win-sub">{copy.drawSubtitle}</p>}
-        <h2>{draw ? copy.draw : mode === "ai" ? (winner === 2 ? copy.aiWins : copy.youWin) : copy.winTitle(PLAYER_NAMES[winner!])}</h2>
+        <h2 id="gomoku-result-title">{draw ? copy.draw : mode === "ai" ? (winner === 2 ? copy.aiWins : copy.youWin) : copy.winTitle(PLAYER_NAMES[winner!])}</h2>
         <div className="win-actions">
           <button className="secondary-action" onClick={onDismiss}>{copy.winViewBoard}</button>
-          <button className="primary-action" autoFocus onClick={onPlayAgain}><RotateCcw size={17} />{copy.winPlayAgain}</button>
+          <button ref={playAgainRef} className="primary-action" onClick={onPlayAgain}><RotateCcw size={17} aria-hidden="true" />{copy.winPlayAgain}</button>
         </div>
         <button className="home-link" onClick={onHome}>{copy.backHome}</button>
       </section>
@@ -269,7 +315,7 @@ export default function App() {
 
       {screen === "playing" && (
         <section className="game-stage">
-          <div className={`status-line status-${status}`}>
+          <div className={`status-line status-${status}`} role="status" aria-live="polite">
             <div className="status-players">
               <span className="status-player"><Stone player={1} size="sm" /><span>{mode === "ai" ? "YOU" : "P1"}</span></span>
               <span className="status-vs">VS</span>

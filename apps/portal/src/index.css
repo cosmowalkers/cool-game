@@ -32,6 +32,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 3px;
+}
+
 button,
 a {
   font: inherit;
@@ -166,6 +172,7 @@ h1 {
 }
 
 .game-card {
+  position: relative;
   display: grid;
   min-height: 330px;
   grid-template-columns: minmax(150px, 0.85fr) minmax(0, 1.15fr);
@@ -301,6 +308,12 @@ h1 {
   transition:
     color 160ms ease,
     gap 160ms ease;
+}
+
+.game-action::before {
+  position: absolute;
+  inset: 0;
+  content: "";
 }
 
 .game-action:hover {

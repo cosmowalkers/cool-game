@@ -25,7 +25,7 @@ function GameCard({
     <article className={`game-card tone-${tone} ${available ? "" : "is-coming"}`}>
       <div className="game-card-art" aria-hidden="true">
         {image ? (
-          <img src={image} alt="" />
+          <img src={image} alt="" width="240" height="300" />
         ) : coverArt ? (
           <span className="game-card-cover">{coverArt}</span>
         ) : (

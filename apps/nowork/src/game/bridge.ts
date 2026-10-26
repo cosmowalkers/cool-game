@@ -36,6 +36,7 @@ const snapshotListeners = new Set<() => void>();
 const settingsListeners = new Set<() => void>();
 const recordListeners = new Set<() => void>();
 const commandListeners = new Set<(command: GameCommand) => void>();
+const pendingCommands: GameCommand[] = [];
 
 function notify(listeners: Set<() => void>): void {
   for (const listener of listeners) listener();
@@ -84,10 +85,15 @@ export const gameBridge = {
     return () => recordListeners.delete(listener);
   },
   command: (command: GameCommand) => {
+    if (commandListeners.size === 0) {
+      pendingCommands.push(command);
+      return;
+    }
     for (const listener of commandListeners) listener(command);
   },
   onCommand: (listener: (command: GameCommand) => void) => {
     commandListeners.add(listener);
+    while (pendingCommands.length > 0) listener(pendingCommands.shift()!);
     return () => commandListeners.delete(listener);
   },
 };
