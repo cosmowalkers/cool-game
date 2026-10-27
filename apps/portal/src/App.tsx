@@ -1,10 +1,11 @@
 import { ArrowUpRight, Gamepad2, Sparkles } from "lucide-react";
-import { GomokuCover, JunqiCover } from "./covers";
+import { CubeCover, GomokuCover, JunqiCover } from "./covers";
 import { copy, games } from "./content/zh-CN";
 
 const COVER_ART = {
   gomoku: <GomokuCover />,
   junqi: <JunqiCover />,
+  cube: <CubeCover />,
 } as const;
 
 function GameCard({

@@ -256,3 +256,27 @@ export function JunqiCover() {
     </svg>
   );
 }
+
+export function CubeCover() {
+  return (
+    <svg viewBox="0 0 240 300" role="img" aria-label="3D 魔方封面" width="100%">
+      <defs>
+        <linearGradient id="cube-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#282a2d" />
+          <stop offset="1" stopColor="#111214" />
+        </linearGradient>
+      </defs>
+      <rect width="240" height="300" fill="url(#cube-bg)" />
+      <ellipse cx="120" cy="243" rx="72" ry="18" fill="#090a0b" opacity=".7" />
+      <g transform="translate(120 146) rotate(-24)">
+        <path d="M-62 -35 L0 -70 L62 -35 L0 0Z" fill="#f4f0e8" stroke="#161719" strokeWidth="5" />
+        <path d="M-62 -35 L0 0 L0 78 L-62 42Z" fill="#4eaa70" stroke="#161719" strokeWidth="5" />
+        <path d="M0 0 L62 -35 L62 42 L0 78Z" fill="#db5b4f" stroke="#161719" strokeWidth="5" />
+        <path d="M-31 -52 L0 -69 L0 -34 L-31 -17Z M0 -69 L31 -52 L31 -17 L0 -34Z" fill="#f1c84b" stroke="#161719" strokeWidth="3" />
+        <path d="M-62 -35 L-31 -17 L-31 58 L-62 42Z M-31 -17 L0 0 L0 78 L-31 58Z" fill="#4b7fd3" stroke="#161719" strokeWidth="3" />
+        <path d="M0 0 L31 -17 L31 58 L0 78Z M31 -17 L62 -35 L62 42 L31 58Z" fill="#ed8c47" stroke="#161719" strokeWidth="3" />
+      </g>
+      <text x="24" y="274" fill="#f36f3d" fontFamily='"DM Mono", monospace' fontSize="17" fontWeight="500" letterSpacing="3">CUBE / 01</text>
+    </svg>
+  );
+}

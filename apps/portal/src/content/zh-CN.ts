@@ -7,7 +7,7 @@ export interface GameEntry {
   description: string;
   href: string;
   image?: string;
-  art?: "gomoku" | "junqi";
+  art?: "gomoku" | "junqi" | "cube";
   tone: GameTone;
   status: "available" | "coming";
 }
@@ -52,6 +52,16 @@ export const games: GameEntry[] = [
     href: import.meta.env.VITE_GOMOKU_URL || "/gomoku/",
     art: "gomoku",
     tone: "blue",
+    status: "available",
+  },
+  {
+    id: "cube",
+    title: "CUBE",
+    subtitle: "3D 魔方",
+    description: "拖动查看魔方，旋转每一面，让六种颜色回到各自的位置。",
+    href: import.meta.env.VITE_CUBE_URL || "/cube/",
+    art: "cube",
+    tone: "coral",
     status: "available",
   },
 ];

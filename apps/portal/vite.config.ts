@@ -22,6 +22,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/junqi/, ""),
       },
+      "/cube": {
+        target: "http://localhost:4104",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/cube/, ""),
+      },
     },
   },
   build: {
