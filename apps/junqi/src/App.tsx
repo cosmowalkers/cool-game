@@ -4,7 +4,7 @@ import { copy, type RuleSection } from "./content/zh-CN";
 import {
   applyFlip, applyMove, checkWin, chooseAiMove, cloneBoard, COLS, createBoard,
   CAMP_POSITIONS, DIAGONAL_ROADS, getFlappable, getMoves, HALF_ROWS, HQ_POSITIONS,
-  isCamp, isMountainStep, MOUNTAIN_COLUMNS,
+  isCamp, isMountainStep,
   MAX_MOVES, RANK_NAMES, Rank, ROWS,
   type Board, type Cell, type Piece, type Position, type Side,
 } from "./game/engine";
@@ -13,7 +13,7 @@ type GameMode = "ai" | "local";
 type Screen = "menu" | "playing";
 type GameStatus = "playing" | "won" | "draw";
 
-interface LastAction { from?: Position; to: Position; }
+interface LastAction { from?: Position; to: Position; type: "move" | "flip"; }
 
 /** 横向铁路所在行 / 纵向铁路所在列（与引擎保持一致） */
 const RAIL_ROWS = [1, 5, 6, 10];
@@ -92,14 +92,22 @@ const LADDER = [
 
 /* ============================== 标准军棋棋盘 ============================== */
 
-const CELL = 100;
-const PX = (col: number) => col * CELL + CELL / 2;
-const PY = (row: number) => row * CELL + CELL / 2;
-/** 铁路双轨到格心的距离：棋子正好卡在两根钢轨之间 */
-const RAIL_OFF = 43;
+/** SVG 使用 3:4 的标准地图比例，避免把 5:12 的方格图强行拉伸。 */
+const CELL_X = 120;
+const DIVIDER_HEIGHT = 80;
+const CELL_Y = (800 - DIVIDER_HEIGHT) / ROWS;
+const BOARD_WIDTH = COLS * CELL_X;
+const BOARD_HEIGHT = ROWS * CELL_Y + DIVIDER_HEIGHT;
+const PX = (col: number) => col * CELL_X + CELL_X / 2;
+const PY = (row: number) => row * CELL_Y + (row >= HALF_ROWS ? DIVIDER_HEIGHT : 0) + CELL_Y / 2;
+/** 铁路双轨到格心的距离：横向铁路按纵向格高，纵向铁路按横向格宽。 */
+const RAIL_X_OFF = 43;
+const RAIL_Y_OFF = 24;
 
 function BoardSvg() {
-  const midY = HALF_ROWS * CELL;
+  const dividerTop = HALF_ROWS * CELL_Y;
+  const midY = dividerTop + DIVIDER_HEIGHT / 2;
+  const boundaryCells = ["frontline", "mountain", "frontline", "mountain", "frontline"] as const;
   const road: React.ReactNode[] = [];
   const railBed: React.ReactNode[] = [];
   const railLine: React.ReactNode[] = [];
@@ -116,15 +124,15 @@ function BoardSvg() {
 
   /* 横向铁路：整行一条轨道床 + 上下两根钢轨 */
   for (const r of RAIL_ROWS) {
-    railBed.push(<rect key={`rbed${r}`} x={0} y={PY(r) - RAIL_OFF} width={COLS * CELL} height={RAIL_OFF * 2} className="rail-bed" />);
-    railLine.push(<line key={`rl${r}a`} x1={0} y1={PY(r) - RAIL_OFF} x2={COLS * CELL} y2={PY(r) - RAIL_OFF} className="rail-line" />);
-    railLine.push(<line key={`rl${r}b`} x1={0} y1={PY(r) + RAIL_OFF} x2={COLS * CELL} y2={PY(r) + RAIL_OFF} className="rail-line" />);
+    railBed.push(<rect key={`rbed${r}`} x={0} y={PY(r) - RAIL_Y_OFF} width={BOARD_WIDTH} height={RAIL_Y_OFF * 2} className="rail-bed" />);
+    railLine.push(<line key={`rl${r}a`} x1={0} y1={PY(r) - RAIL_Y_OFF} x2={BOARD_WIDTH} y2={PY(r) - RAIL_Y_OFF} className="rail-line" />);
+    railLine.push(<line key={`rl${r}b`} x1={0} y1={PY(r) + RAIL_Y_OFF} x2={BOARD_WIDTH} y2={PY(r) + RAIL_Y_OFF} className="rail-line" />);
   }
   /* 纵向铁路：左右两条干线贯穿全场 */
   for (const c of RAIL_COLS) {
-    railBed.push(<rect key={`cbed${c}`} x={PX(c) - RAIL_OFF} y={0} width={RAIL_OFF * 2} height={ROWS * CELL} className="rail-bed" />);
-    railLine.push(<line key={`cl${c}a`} x1={PX(c) - RAIL_OFF} y1={0} x2={PX(c) - RAIL_OFF} y2={ROWS * CELL} className="rail-line" />);
-    railLine.push(<line key={`cl${c}b`} x1={PX(c) + RAIL_OFF} y1={0} x2={PX(c) + RAIL_OFF} y2={ROWS * CELL} className="rail-line" />);
+    railBed.push(<rect key={`cbed${c}`} x={PX(c) - RAIL_X_OFF} y={0} width={RAIL_X_OFF * 2} height={BOARD_HEIGHT} className="rail-bed" />);
+    railLine.push(<line key={`cl${c}a`} x1={PX(c) - RAIL_X_OFF} y1={0} x2={PX(c) - RAIL_X_OFF} y2={BOARD_HEIGHT} className="rail-line" />);
+    railLine.push(<line key={`cl${c}b`} x1={PX(c) + RAIL_X_OFF} y1={0} x2={PX(c) + RAIL_X_OFF} y2={BOARD_HEIGHT} className="rail-line" />);
   }
   /* 中路铁路：三条贯通铁路中的中间一条，只连接两方前线 */
   {
@@ -156,41 +164,50 @@ function BoardSvg() {
   );
 
   return (
-    <svg className="board-svg" viewBox={`0 0 ${COLS * CELL} ${ROWS * CELL}`} aria-hidden="true">
+    <svg className="board-svg" viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`} aria-hidden="true">
       {/* 双方阵地底色（黑方在上 0-5 行，红方在下 6-11 行） */}
-      <rect x="0" y="0" width={COLS * CELL} height={midY} className="zone zone-black" />
-      <rect x="0" y={midY} width={COLS * CELL} height={midY} className="zone zone-red" />
+      <rect x="0" y="0" width={BOARD_WIDTH} height={dividerTop} className="zone zone-black" />
+      <rect x="0" y={dividerTop + DIVIDER_HEIGHT} width={BOARD_WIDTH} height={dividerTop} className="zone zone-red" />
 
       {road}
       {railBed}
       {railLine}
 
-      {/* 山界：三条铁路（第 0/2/4 列）贯通前线，其余两列被山隔断 */}
-      <g className="mountain">
-        {MOUNTAIN_COLUMNS.map((c) => {
-          const x0 = PX(c) - 46;
-          return (
-            <g key={`mtn${c}`}>
-              <rect x={x0} y={midY - 12} width={92} height={24} className="mountain-base" />
-              <path d={ridge(x0, 92, midY - 12, 1)} className="mountain-ridge" />
-              <path d={ridge(x0, 92, midY + 12, -1)} className="mountain-ridge" />
-              <text x={PX(c)} y={midY + 7} className="mountain-text" textAnchor="middle">山</text>
-            </g>
-          );
-        })}
+      {/* 中间交界带：前线 / 山界 / 前线 / 山界 / 前线，不占上下棋位。 */}
+      <g className="boundary-strip">
+        {boundaryCells.map((kind, col) => (
+          <rect key={`boundary-${col}`} x={col * CELL_X} y={dividerTop}
+            width={CELL_X} height={DIVIDER_HEIGHT} className={`${kind}-cell`} />
+        ))}
+        <path d={ridge(CELL_X, CELL_X, dividerTop, 1)} className="mountain-ridge" />
+        <path d={ridge(CELL_X, CELL_X, dividerTop + DIVIDER_HEIGHT, -1)} className="mountain-ridge" />
+        <path d={ridge(CELL_X * 3, CELL_X, dividerTop, 1)} className="mountain-ridge" />
+        <path d={ridge(CELL_X * 3, CELL_X, dividerTop + DIVIDER_HEIGHT, -1)} className="mountain-ridge" />
+        <text x={CELL_X / 2} y={midY + 5} className="frontline-text" textAnchor="middle">{copy.mapLabels.frontline}</text>
+        <text x={CELL_X * 1.5} y={midY + 5} className="mountain-text" textAnchor="middle">{copy.mapLabels.mountain}</text>
+        <text x={CELL_X * 2.5} y={midY + 5} className="frontline-text" textAnchor="middle">{copy.mapLabels.frontline}</text>
+        <text x={CELL_X * 3.5} y={midY + 5} className="mountain-text" textAnchor="middle">{copy.mapLabels.mountain}</text>
+        <text x={CELL_X * 4.5} y={midY + 5} className="frontline-text" textAnchor="middle">{copy.mapLabels.frontline}</text>
       </g>
 
       {/* 行营：受保护格，开局留空 */}
       {CAMP_POSITIONS.map((p, i) => (
-        <circle key={`camp${i}`} cx={PX(p.col)} cy={PY(p.row)} r={47} className="camp-circle" />
-      ))}
-      {/* 大本营：双圈标记 */}
-      {[...HQ_POSITIONS.black, ...HQ_POSITIONS.red].map((p, i) => (
-        <g key={`hq${i}`}>
-          <circle cx={PX(p.col)} cy={PY(p.row)} r={52} className="hq-outer" />
-          <circle cx={PX(p.col)} cy={PY(p.row)} r={43} className="hq-inner" />
+        <g key={`camp${i}`}>
+          <ellipse cx={PX(p.col)} cy={PY(p.row)} rx={50} ry={25} className="camp-circle" />
         </g>
       ))}
+      {/* 大本营：双层椭圆标记 */}
+      {[...HQ_POSITIONS.black, ...HQ_POSITIONS.red].map((p, i) => (
+        <g key={`hq${i}`}>
+          <ellipse cx={PX(p.col)} cy={PY(p.row)} rx={54} ry={27} className="hq-outer" />
+          <ellipse cx={PX(p.col)} cy={PY(p.row)} rx={44} ry={21} className="hq-inner" />
+          <text x={PX(p.col)} y={PY(p.row) + 5} className="hq-text" textAnchor="middle">{copy.mapLabels.headquarters}</text>
+        </g>
+      ))}
+      <g className="frontline-mark">
+        <line x1={12} y1={midY - 46} x2={BOARD_WIDTH - 12} y2={midY - 46} />
+        <line x1={12} y1={midY + 46} x2={BOARD_WIDTH - 12} y2={midY + 46} />
+      </g>
     </svg>
   );
 }
@@ -209,16 +226,21 @@ function PieceTile({ piece }: { piece: Piece }) {
   );
 }
 
-function CellView({ cell, selected, validTarget, recent, onClick }: {
+function CellView({ cell, camp, selected, validTarget, recent, actionType, gridRow, gridColumn, onClick }: {
   cell: Cell; selected: boolean; validTarget: boolean; recent: boolean;
+  camp: boolean;
+  actionType?: LastAction["type"];
+  gridRow: number; gridColumn: number;
   onClick: () => void;
 }) {
   let cls = "piece-slot";
+  if (camp) cls += " slot-camp";
   if (selected) cls += " slot-selected";
   if (validTarget) cls += " slot-target";
   if (recent) cls += " slot-recent";
+  if (recent && actionType) cls += ` slot-${actionType}`;
   return (
-    <button type="button" className={cls} onClick={onClick}
+    <button type="button" className={cls} style={{ gridRow, gridColumn }} onClick={onClick}
       aria-label={cell ? (cell.faceUp ? `${copy.sideName(cell.side)}${copy.rankName(cell.rank)}` : copy.hiddenPiece) : copy.emptyPoint}>
       {cell && <PieceTile piece={cell} />}
     </button>
@@ -380,7 +402,7 @@ export default function App() {
     const nb = applyMove(b, from, to);
     setBoard(nb);
     setSelectedPos(null); setValidMoves([]);
-    setLastAction({ from, to });
+    setLastAction({ from, to, type: "move" });
     setHistory((h) => [...h, cloneBoard(nb)]);
     stepsRef.current += 1;
     if (!settle(nb, stepsRef.current)) setCurrentSide(side === "red" ? "black" : "red");
@@ -389,7 +411,7 @@ export default function App() {
   const doFlip = useCallback((b: Board, pos: Position, side: Side) => {
     const nb = applyFlip(b, pos);
     setBoard(nb);
-    setLastAction({ to: pos });
+    setLastAction({ to: pos, type: "flip" });
     setSelectedPos(null); setValidMoves([]);
     setHistory((h) => [...h, cloneBoard(nb)]);
     stepsRef.current += 1;
@@ -495,9 +517,13 @@ export default function App() {
                 {Array.from({ length: ROWS }, (_, row) =>
                   Array.from({ length: COLS }, (_, col) => (
                     <CellView key={`${row}-${col}`} cell={board[row][col]}
+                      camp={isCamp({ row, col })}
+                      gridRow={row < HALF_ROWS ? row + 1 : row + 2}
+                      gridColumn={col + 1}
                       selected={selectedPos?.row === row && selectedPos?.col === col}
                       validTarget={validMoves.some((m) => m.row === row && m.col === col)}
                       recent={!!lastAction && ((lastAction.from && lastAction.from.row === row && lastAction.from.col === col) || (lastAction.to.row === row && lastAction.to.col === col))}
+                      actionType={lastAction?.type}
                       onClick={() => handleCellClick(row, col)} />
                   ))
                 )}

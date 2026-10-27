@@ -2,20 +2,20 @@
 
 :root {
   color-scheme: light;
-  --bg: #e9e1cc; --bg-soft: #f4eeda; --panel: #ded5bd; --line: #c6bb9a;
-  --ink: #2b2416; --ink-soft: #5d5038; --muted: #998b70;
-  --accent: #b08a24; --accent-soft: rgb(176 138 36 / 14%);
-  --danger: #b03a2a; --danger-soft: rgb(176 58 42 / 12%);
-  --safe: #4f7f3b;
-  --target: #2f6f9c;
+  --bg: #10171b; --bg-soft: #182329; --panel: #223139; --line: #364852;
+  --ink: #edf0e4; --ink-soft: #b6c3bd; --muted: #7e9290;
+  --accent: #d5ad5d; --accent-soft: rgb(213 173 93 / 16%);
+  --danger: #d45d52; --danger-soft: rgb(212 93 82 / 16%);
+  --safe: #4e9a76;
+  --target: #70b6be;
 
-  --paper: #f7f0db;
-  --board-line: #9c855c;
-  --board-rail: #6d5021;
-  --wood-1: #7d6741; --wood-2: #5c4a2c;
+  --paper: #d7c9a5;
+  --board-line: #847757;
+  --board-rail: #3e4d4b;
+  --wood-1: #34464a; --wood-2: #1d2b30;
 
   --topbar-h: 58px;
-  --font-display: "PingFang SC", "Heiti SC", "Microsoft YaHei", sans-serif;
+  --font-display: "STKaiti", "KaiTi", "Songti SC", serif;
   --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
@@ -23,7 +23,10 @@
 html, body, #root { width: 100%; height: 100%; }
 body {
   margin: 0; overflow-x: hidden;
-  background: var(--bg); color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 12%, rgb(66 99 98 / 18%), transparent 32%),
+    radial-gradient(circle at 90% 82%, rgb(213 173 93 / 9%), transparent 28%),
+    var(--bg); color: var(--ink);
   font-family: var(--font-body); -webkit-font-smoothing: antialiased;
 }
 button, a { font: inherit; -webkit-tap-highlight-color: transparent; }
@@ -44,11 +47,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
   flex: 0 0 var(--topbar-h); z-index: 80;
   display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1px solid var(--line);
-  background: rgba(244,238,218,.94); backdrop-filter: blur(8px);
+  background: rgb(16 23 27 / 88%); backdrop-filter: blur(14px);
   padding: 0 14px;
 }
 .mini-brand { display: flex; align-items: baseline; gap: 10px; color: inherit; text-decoration: none; }
-.mini-brand strong { color: var(--accent); font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: .08em; }
+.mini-brand strong { color: var(--accent); font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: .12em; }
 .mini-brand span { color: var(--muted); font-size: 12px; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
 .turn-indicator { display: flex; align-items: center; gap: 6px; margin-right: 2px; font-size: 13px; font-weight: 600; white-space: nowrap; }
@@ -59,7 +62,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
 .icon-button {
   display: inline-grid; width: 38px; height: 38px; place-items: center;
   border: 1px solid var(--line); border-radius: 6px;
-  background: var(--bg-soft); color: var(--ink-soft); cursor: pointer;
+  background: rgb(34 49 57 / 75%); color: var(--ink-soft); cursor: pointer;
   transition: border-color .16s, color .16s;
 }
 .icon-button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
@@ -68,39 +71,39 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
 /* ============================== 封面 ============================== */
 .menu-screen { position: relative; flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: auto; }
 .menu-topo { position: absolute; inset: 0; pointer-events: none; }
-.topo-ring { position: absolute; border: 2px solid var(--panel); border-radius: 50%; opacity: .7; }
+.topo-ring { position: absolute; border: 1px solid rgb(213 173 93 / 20%); border-radius: 50%; opacity: .7; }
 .topo-r1 { width: 460px; height: 460px; top: -120px; right: -120px; }
 .topo-r2 { width: 340px; height: 340px; bottom: -90px; left: -80px; }
 .topo-r3 { width: 190px; height: 190px; top: 18%; left: 6%; }
 .menu-stamp {
   position: absolute; top: 14%; right: 8%; padding: 6px 12px;
-  border: 3px solid var(--danger); color: var(--danger);
+  border: 2px solid var(--danger); color: var(--danger);
   font-family: var(--font-display); font-size: 15px; font-weight: 800;
   letter-spacing: .28em; transform: rotate(12deg); opacity: .2;
 }
 .menu-foreground { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 26px; padding: 16px 18px; max-height: 100%; }
 .menu-hero { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .menu-emblems { display: flex; gap: 14px; color: var(--accent); font-size: 18px; }
-.menu-hero h1 { font-family: var(--font-display); font-size: clamp(34px, 7.6vh, 68px); font-weight: 900; margin: 0; line-height: 1.05; letter-spacing: .06em; }
+.menu-hero h1 { font-family: var(--font-display); font-size: clamp(40px, 8vh, 76px); font-weight: 900; margin: 0; line-height: 1.05; letter-spacing: .12em; text-shadow: 0 3px 0 rgb(0 0 0 / 24%); }
 .menu-rank-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .rank-badge {
   display: grid; width: 40px; height: 46px; place-items: center; line-height: 1;
   border: 1px solid var(--line); border-radius: 5px;
-  background: var(--bg-soft); color: var(--ink-soft);
+  background: rgb(34 49 57 / 82%); color: var(--accent);
   font-family: var(--font-display); font-size: 15px; font-weight: 800;
   box-shadow: 2px 2px 0 var(--panel); writing-mode: vertical-rl;
 }
 .menu-tagline { color: var(--muted); font-size: 14px; margin: 0; max-width: 320px; line-height: 1.7; }
 .menu-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.mode-options { display: flex; gap: 2px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-soft); }
+.mode-options { display: flex; gap: 2px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: rgb(24 35 41 / 92%); }
 .mode-pill { display: flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; transition: color .16s, background-color .16s; }
 .mode-pill:hover { color: var(--ink); background: var(--panel); }
-.mode-pill.is-active { background: var(--accent); color: #fff; }
+.mode-pill.is-active { background: var(--accent); color: #152126; }
 .start-btn {
   display: flex; align-items: center; gap: 10px; padding: 13px 40px;
-  border: none; border-radius: 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 12px; background: var(--accent); color: #152126;
   font-size: 17px; font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 18px rgb(176 138 36 / 30%); transition: transform .15s;
+  box-shadow: 0 4px 24px rgb(213 173 93 / 24%); transition: transform .15s;
 }
 .start-btn:hover { transform: translateY(-2px); }
 .menu-hint { color: var(--muted); font-size: 12px; margin: 0; }
@@ -109,16 +112,16 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
 .game-stage {
   flex: 1 1 auto; min-height: 0;
   display: flex; align-items: center; justify-content: center;
-  padding: 12px 10px calc(12px + env(safe-area-inset-bottom));
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
   overflow: hidden;
 }
 
 .board-frame {
   position: relative;
-  /* 宽度由「可用高度 × 5/12」推导，保证任意屏幕都完整放进一屏、无需滚动 */
-  width: min(100%, 520px, calc((100dvh - var(--topbar-h) - 44px - env(safe-area-inset-bottom)) * 5 / 12));
-  aspect-ratio: 5 / 12;
-  border-radius: 5px;
+  /* 采用标准军棋地图的宽屏比例，保证棋盘在手机上也有足够的横向操作空间 */
+  width: min(calc(100% - 32px), 520px, calc((100dvh - var(--topbar-h) - 56px - env(safe-area-inset-bottom)) * 3 / 4));
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
   box-shadow:
     0 0 0 6px var(--wood-1),
     0 0 0 7px var(--wood-2),
@@ -128,39 +131,61 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
 .board-area {
   position: absolute; inset: 0;
   border-radius: 4px; overflow: hidden;
-  background: var(--paper);
+  background:
+    linear-gradient(90deg, rgb(67 55 37 / 8%) 1px, transparent 1px),
+    linear-gradient(0deg, rgb(67 55 37 / 7%) 1px, transparent 1px),
+    var(--paper);
+  background-size: 20px 20px;
   container-type: size; /* 让棋子字号跟着棋盘缩放 */
 }
 .board-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 /* --- SVG 棋盘元素 --- */
 .zone { stroke: none; }
-.zone-black { fill: rgb(38 33 26 / 9%); }
-.zone-red { fill: rgb(157 45 30 / 7%); }
+.zone-black { fill: rgb(25 39 43 / 13%); }
+.zone-red { fill: rgb(159 56 45 / 12%); }
 
 /* 铁路：轨道床 + 双钢轨（粗、深，一眼可辨） */
-.rail-bed { fill: rgb(122 94 46 / 20%); }
-.rail-line { stroke: #553914; stroke-width: 4; stroke-linecap: square; opacity: 1; }
+.rail-bed { fill: rgb(39 59 60 / 25%); }
+.rail-line { stroke: #344b4c; stroke-width: 4; stroke-linecap: square; opacity: 1; }
 
 /* 公路细线 */
-.road-line { stroke: #8f7448; stroke-width: 3; stroke-linecap: round; opacity: .8; }
+.road-line { stroke: #9a8964; stroke-width: 3; stroke-linecap: round; opacity: .78; }
 
 /* 山界：夹在两条前线之间的窄带，上下各一排锯齿山尖 */
-.mountain-base { fill: rgb(168 146 96 / 92%); }
-.mountain-ridge { fill: none; stroke: #7a6437; stroke-width: 2.6; stroke-linejoin: round; opacity: .95; }
-.mountain-text { fill: #5b4a22; font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.mountain-base { fill: rgb(74 79 68 / 94%); }
+.mountain-ridge { fill: none; stroke: #3e4c43; stroke-width: 2.6; stroke-linejoin: round; opacity: .95; }
+.mountain-text { fill: #e0cf9b; font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+.boundary-strip .frontline-cell {
+  fill: #cab28c; stroke: #b48c53; stroke-width: 2;
+  shape-rendering: crispEdges;
+}
+.boundary-strip .mountain-cell {
+  fill: rgb(74 79 68 / 96%); stroke: #3e4c43; stroke-width: 2;
+  shape-rendering: crispEdges;
+}
+.frontline-text {
+  fill: #8c603b; font-family: var(--font-body); font-size: 16px;
+  font-weight: 900; letter-spacing: .18em; opacity: .9;
+}
 
 /* 行营（安全岛） */
-.camp-circle { fill: rgb(79 127 59 / 10%); stroke: var(--safe); stroke-width: 3.4; opacity: .95; }
+.camp-circle { fill: rgb(78 154 118 / 19%); stroke: var(--safe); stroke-width: 3.4; opacity: .95; }
+.camp-text { fill: #286650; font-family: var(--font-body); font-size: 17px; font-weight: 800; opacity: .78; }
 /* 大本营（双圈） */
 .hq-outer { fill: rgb(176 58 42 / 7%); stroke: var(--danger); stroke-width: 2.8; opacity: .9; }
 .hq-inner { fill: none; stroke: var(--danger); stroke-width: 2; stroke-dasharray: 8 7; opacity: .6; }
+.hq-text { fill: #9c3f36; font-family: var(--font-body); font-size: 16px; font-weight: 900; opacity: .78; }
+.frontline-mark rect { fill: rgb(180 140 83 / 24%); }
+.frontline-mark line { stroke: #b48c53; stroke-width: 6; stroke-dasharray: 12 8; opacity: .85; }
+.frontline-mark text { fill: #8c603b; font-family: var(--font-body); font-size: 18px; font-weight: 900; letter-spacing: .3em; opacity: .9; }
 
 /* ============================== 棋位与棋子 ============================== */
 .pieces-grid {
   position: absolute; inset: 0;
   display: grid;
-  grid-template-rows: repeat(12, 1fr);
+  /* 中间第 7 行是楚河汉界，棋子只落在上下两个六行阵地。 */
+  grid-template-rows: repeat(6, minmax(0, 1fr)) 10% repeat(6, minmax(0, 1fr));
   grid-template-columns: repeat(5, 1fr);
 }
 .piece-slot {
@@ -174,7 +199,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
   transition: opacity .14s;
 }
 /* 选中 */
-.slot-selected::before { opacity: 1; box-shadow: inset 0 0 0 3px var(--accent); background: var(--accent-soft); }
+.slot-selected::before { opacity: 1; box-shadow: inset 0 0 0 3px var(--accent), 0 0 18px rgb(213 173 93 / 36%); background: var(--accent-soft); }
 /* 可走 / 可吃目标：环状标记，画在棋子之上也能看清（用蓝色和行营的绿色区分开） */
 .slot-target::after {
   position: absolute; inset: 2%; border-radius: 15%;
@@ -183,28 +208,34 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
   animation: target-pulse .9s ease-in-out infinite alternate;
 }
 @keyframes target-pulse { from { opacity: .55; } to { opacity: 1; } }
-.slot-recent { background: rgb(176 138 36 / 12%); }
+.slot-recent { background: rgb(213 173 93 / 18%); }
 
-/* --- 棋子：长方形（高 > 宽），刚好卡在铁轨之间 --- */
+/* --- 棋子：横向长方形，适配宽屏标准棋盘与移动端格点 --- */
 .tile {
   position: relative; display: grid; place-items: center;
-  width: 66%; aspect-ratio: 66 / 76;
-  border-radius: 17%;
+  width: 66%; aspect-ratio: 76 / 50;
+  border-radius: 14%;
   transition: transform .12s;
   animation: tile-in .16s ease-out;
+  z-index: 2;
 }
 .tile-chars {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex; flex-direction: row; align-items: center; justify-content: center;
+  gap: .12em;
   font-family: var(--font-display); font-weight: 800; line-height: 1;
   font-size: 16px;
-  font-size: clamp(10px, 6.2cqw, 22px);
+  font-size: clamp(9px, 5.6cqw, 20px);
 }
 @keyframes tile-in { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: none; } }
+@keyframes tile-flip { 0% { transform: perspective(500px) rotateY(90deg) scale(.82); opacity: .2; } 65% { transform: perspective(500px) rotateY(-8deg) scale(1.04); } 100% { transform: perspective(500px) rotateY(0) scale(1); opacity: 1; } }
+@keyframes piece-move { 0% { transform: scale(.82); filter: brightness(1.8); } 65% { transform: scale(1.08); filter: brightness(1.15); } 100% { transform: scale(1); filter: none; } }
+.slot-flip .tile { animation: tile-flip .42s cubic-bezier(.2,.7,.25,1) both; transform-origin: center; }
+.slot-move .tile { animation: piece-move .3s cubic-bezier(.2,.75,.3,1) both; }
 
 /* 背面 */
 .tile-back {
-  background: linear-gradient(160deg, #ded4b6 0%, #c9bd9d 52%, #b1a380 100%);
-  border: 1.5px solid #8b7d59;
+  background: linear-gradient(160deg, #eadab0 0%, #c2ae7d 52%, #96855e 100%);
+  border: 1.5px solid #6d5b3f;
   box-shadow: 0 2px 3px rgb(43 34 20 / 24%), inset 0 0 0 2.5px rgb(255 255 255 / 26%);
 }
 .tile-emblem {
@@ -215,16 +246,16 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
 
 /* 红方 */
 .tile-red {
-  background: linear-gradient(160deg, #fdf7e9 0%, #f3e6cd 55%, #e5d3ae 100%);
-  border: 1.5px solid #9e3222;
-  color: #a52f1f;
+  background: linear-gradient(160deg, #fff2dc 0%, #f0d2be 55%, #d8a796 100%);
+  border: 1.5px solid #a83e35;
+  color: #9c302b;
   box-shadow: 0 2px 3px rgb(43 34 20 / 20%), inset 0 0 0 2.5px rgb(158 50 34 / 16%);
 }
 /* 黑方 */
 .tile-black {
-  background: linear-gradient(160deg, #5f594d 0%, #423c34 55%, #2d2925 100%);
-  border: 1.5px solid #1b1814;
-  color: #f0e7ce;
+  background: linear-gradient(160deg, #596b6c 0%, #35484d 55%, #213238 100%);
+  border: 1.5px solid #1d2b30;
+  color: #e8dbb7;
   box-shadow: 0 2px 3px rgb(0 0 0 / 32%), inset 0 0 0 2.5px rgb(255 255 255 / 10%);
 }
 
@@ -233,7 +264,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
   position: absolute; top: 50%; left: 50%; z-index: 30;
   max-width: 92%;
   padding: 8px 16px; border-radius: 6px;
-  background: rgb(43 34 20 / 88%); color: #f0dda2;
+  background: rgb(20 32 36 / 93%); color: #f0dda2;
   font-weight: 700; font-size: 13px; line-height: 1.5; text-align: center;
   transform: translate(-50%, -50%); pointer-events: none;
 }
@@ -306,7 +337,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
   .mini-brand strong { font-size: 17px; }
   .icon-button { width: 34px; height: 34px; }
   .turn-indicator { font-size: 12px; }
-  .game-stage { padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); }
+  .game-stage {
+    align-items: center;
+    padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
+  }
   .board-frame { box-shadow: 0 0 0 5px var(--wood-1), 0 0 0 6px var(--wood-2), 0 10px 22px rgb(43 34 20 / 24%); }
   .menu-foreground { gap: 18px; }
   .menu-hero { gap: 9px; }
@@ -318,7 +352,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outlin
 
 /* 横屏矮屏：高度不够时压缩到极限也要塞进一屏 */
 @media (max-height: 560px) {
-  .game-stage { padding: 6px 4px; }
+  .game-stage { padding: 10px 0; }
   .board-frame { box-shadow: 0 0 0 4px var(--wood-1), 0 0 0 5px var(--wood-2); }
   .menu-screen { align-items: flex-start; }
   .menu-foreground { gap: 12px; padding: 10px; }

@@ -98,17 +98,14 @@ for (let r = 0; r < ROWS; r++)
 // 中路铁路短接线：两方前线之间
 for (let r = HALF_ROWS - 1; r <= HALF_ROWS; r++) RAIL_CELLS.add(railKey(r, MID_RAIL_COL));
 
-/** 斜线公路（行营之间的对角连接） */
-export const DIAGONAL_ROADS: [Position, Position][] = [
-  [{ row: 2, col: 1 }, { row: 3, col: 2 }],
-  [{ row: 2, col: 3 }, { row: 3, col: 2 }],
-  [{ row: 4, col: 1 }, { row: 3, col: 2 }],
-  [{ row: 4, col: 3 }, { row: 3, col: 2 }],
-  [{ row: 7, col: 1 }, { row: 8, col: 2 }],
-  [{ row: 7, col: 3 }, { row: 8, col: 2 }],
-  [{ row: 9, col: 1 }, { row: 8, col: 2 }],
-  [{ row: 9, col: 3 }, { row: 8, col: 2 }],
-];
+/** 斜线公路：行营周围 3×3 范围内的 8 个相邻兵站都可一步进入行营。 */
+export const DIAGONAL_ROADS: [Position, Position][] = CAMP_POSITIONS.flatMap((camp) =>
+  ([
+    [-1, -1], [-1, 1], [1, -1], [1, 1],
+  ] as const)
+    .map(([dr, dc]) => [{ row: camp.row, col: camp.col }, { row: camp.row + dr, col: camp.col + dc }] as [Position, Position])
+    .filter(([, to]) => isOnBoard(to.row, to.col))
+);
 
 export function isCamp(pos: Position): boolean {
   return CAMP_POSITIONS.some((p) => p.row === pos.row && p.col === pos.col);
@@ -188,15 +185,14 @@ export function boardSlots(): Position[] {
 /**
  * 翻棋开局：双方共 50 枚棋子混合洗匀后随机扣满 50 个非行营点，全部背面朝上。
  * 不分半场归属——你的司令可能躺在对方阵地里，行营开局留空。
- * 唯一的例外是军旗：军旗一定藏在自己阵地一侧（棋盘中间由山界分成两半）的
- * 随机一个非行营点，所以「想扛旗就得先打进对方阵地去找」。
+ * 军旗固定藏在己方两个大本营中的一个，背面朝上。
  */
 export function createBoard(): Board {
   const board: Board = Array.from({ length: ROWS }, () => Array<Cell>(COLS).fill(null));
   const slots = boardSlots();
   const taken = new Set<string>();
   for (const side of ["black", "red"] as Side[]) {
-    const own = slots.filter((s) => !taken.has(railKey(s.row, s.col)) && TERRITORY_ROWS[side].includes(s.row));
+    const own = HQ_POSITIONS[side].filter((s) => !taken.has(railKey(s.row, s.col)));
     const cell = own[Math.floor(Math.random() * own.length)];
     board[cell.row][cell.col] = { rank: Rank.Flag, side, faceUp: false };
     taken.add(railKey(cell.row, cell.col));
@@ -222,12 +218,12 @@ export function cloneBoard(board: Board): Board {
 /**
  * 公路：相邻节点一步（含行营对角斜线）。
  * 铁路：所有棋子沿铁路直线走任意格；工兵可沿铁路转弯走遍整条铁路网。
- * 行营内的棋子受保护，不能被攻击；山界两侧中路不通。
+ * 行营内的棋子受保护，不能被攻击；大本营内的棋子不能再次移动；山界两侧中路不通。
  */
 export function getMoves(board: Board, pos: Position): Position[] {
   const piece = board[pos.row][pos.col];
   if (!piece || !piece.faceUp) return [];
-  if (piece.rank === Rank.Flag || piece.rank === Rank.Mine) return [];
+  if (piece.rank === Rank.Flag || piece.rank === Rank.Mine || isHeadquarters(pos)) return [];
 
   const found = new Map<string, Position>();
   const add = (r: number, c: number) => {
@@ -449,7 +445,7 @@ export function checkWin(board: Board): Side | null {
     }
   }
 
-  // 军旗被夺
+  // 军旗被任何可攻击的棋子夺得后立即获胜。
   if (!redFlag) return "black";
   if (!blackFlag) return "red";
 
