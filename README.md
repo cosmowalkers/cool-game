@@ -9,6 +9,7 @@ apps/
   nowork/    # NOWORK · 下班大逃亡
   gomoku/    # GOMOKU · 五子棋
   junqi/     # 军棋 · 翻棋对决
+  cube/      # CUBE · 3D 魔方
   portal/    # 游戏统一入口
 scripts/
   assemble-dist.mjs
@@ -37,6 +38,9 @@ dist/
     index.html
     assets/
   junqi/
+    index.html
+    assets/
+  cube/
     index.html
     assets/
 ```
